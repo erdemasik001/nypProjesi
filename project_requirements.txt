@@ -1,0 +1,324 @@
+
+================================================================================
+PAGE 1
+================================================================================
+
+ 
+BLM2012 Object Oriented Programming  
+2025 -2026 Fall Semester Project Document  
+ 
+ 
+ 
+Subject:  Airline Reservation and Management System  
+ 
+ 
+Main Objective: The main goal of this project is to bring a complex real -world business system (Airline 
+Management) to life using the Java programming language. Students are expected to effectively apply Object -
+Oriented Programming (OOP) principles (Encapsulation, Inherit ance, Polymorphism, Abstraction), modern 
+software development practices (Unit Testing), and concurrent processing (Multithreading).  
+ 
+1. Detailed Project Modules  
+The project consists of 3 main modules.  
+ 
+a. Flight Management Module  
+The minimum requirements for this module are given in the table below.  
+Class  Name  Explanation  
+Plane  planeID , planeModel , capacity  (int),  seatMatrix  (2D array  or Map  
+structure ) 
+Flight  flightNum , departure Place , arrivalPlace , date , hour , duration  
+Seat  seatNum  (String,  exp. "15A"),  Class  (Enum:  ECONOMY , BUSINESS ), price , 
+reserveStatus  (boolean).  
+Route  Departure /Arrival  information  
+ 
+ 
+b. Reservation and Ticketing Module  
+The minimum requirements for this module are given in the table below.  
+Class  Name  Explanation  
+Passenger  passengerID , name , surname , contactInfo  
+Reservation  reservationCode , Flight  object , Passenger  object , Seat  object , 
+dateOfReservation  
+Ticket  ticket ID, Reservation  object , price, baggageAllowance  
+Baggage  weight . It is related  to the ticket  class.  
+ 
+ 
+
+
+================================================================================
+PAGE 2
+================================================================================
+
+c. Services and  Managers  
+The minimum requirements for this module are given in the table below.  
+Class  Name  Explanation  
+Flight Manager  Creating  new  flights,  updating/deleting  existing  flights.  
+Seat Manager  It creates  the seating  arrangements  on the plane  and calculates  
+the number  of available  seats.  
+Reservation Manager  Making  and canceling  reservations.  Concurrency  will apply  here.  
+CalculatePrice  Includes  the business  logic  for calculating  ticket  prices  
+(mandatory  for JUnit).  
+ 
+ 
+2. System Requirements  
+a. Multithreading  Structure  
+Students must solve the following two scenarios using Java's concurrency mechanisms 
+(multithreading).  
+ 
+Scenario 1: Simultaneous Seat Reservation (Concurrency Control)  
+• In this scenario, let's assume there are initially 180 empty seats on the plane (30 rows of 
+6 seats) and 90 passengers will be seated in these seats.  
+• Each passenger should select their seat via a thread, and their chosen seat should be 
+randomly selected from among the available seats.  
+• The distribution of empty and occupied seats on the plane should be visualized on a panel, 
+and the number of occupied seats resulting from this process should be written below 
+the panel.  
+• This scenario should be able to be run again and again by pressing a button whenever the 
+user wants to repeat the simulation.  
+• A checkbox on the screen should allow you to determine whether threads will run 
+synchronously or not. When synchronized, it should show 90 seats occupied and 90 seats 
+empty; when not synchronized, it should show incorrect seat placements.  
+ 
+Scenario 2: Asynchronous Report Generation (Asynchronous Task)  
+• A lengthy reporting process (e.g., calculating the occupancy rate for all flights) must be 
+initiated in the user interface (GUI).  
+• This calculation should be run in a separate ReportGenerator Thread to avoid blocking 
+the main GUI Thread.  
+• During the reporting process, the GUI should display the message "Preparing report..." to 
+the user and asynchronously report the result to the GUI when the process is complete.  
+ 
+b. Unit Test Application  (JUnit 5)  
+It is mandatory to write a minimum of 5 JUnit tests  for the following classes and methods.  
+ 
+ 
+
+
+================================================================================
+PAGE 3
+================================================================================
+
+PriceCalculation Test:  
+• Verify that the prices are calculated correctly for different classes (Economy, Business).   
+ 
+FlightSearchEngine Test:  
+• Test the system to filter and retrieve the correct flights for the given departure/arrival 
+cities.  
+• Test the process of eliminating flights whose departure time has passed.  
+ 
+SeatManager Test:  
+• Test that the emptySeatsCount method accurately decreases after a seat has been 
+reserved.  
+• Test the Exception thrown when trying to book a non -existent seat number.  
+ 
+3. Graphical User Interface (GUI)  
+The project must  use a graphical user interface (JavaFX or Swing) and include the following screens:  
+ 
+• Login Screen: User/Staff login . 
+• Flight Search and Booking Screen: The main screen where users can search for flights, select 
+seats, and make reservations.  
+• Reservation Management Screen: Query, view, and cancel existing reservations . 
+• Admin/Staff Screen:  Add new flights, edit existing flights (departure times, etc.), manage staff 
+information.  
+ 
+4. Project Rules and Submissions  
+• Use file operations for permanent data storage in the project. Do not use data storage systems such 
+as databases or XML.  
+o You can use multiple files for multiple tasks.  
+• Identify the classes mentioned above, as well as any additional classes that may be used, and 
+determine what kind of attributes and methods they possess.  
+• Draw a UML class diagram to show the interaction between classes . 
+• Prepare a PDF file containing the UML and its textual explanation, and name it 
+"report_ yourGroup Number ". 
+o Exp: report _12.zip 
+• Rename your source code's src folder by adding an underscore and your group  number to the end, 
+then compress it in ZIP format to obtain a compressed file as shown in the example below.  
+o Exp: src_12.zip 
+• If you have libraries that you use and add externally to your project, place them in a folder, name the 
+folder " lib_your Group Number " and compress the file in ZIP format.  
+o Exp: lib_22010017.zip   
+o Note: If you are not using any additional libraries, you do not need to submit this!  
+• Create an executable file (.jar extension) of your project. Run it on your own computer (and on other 
+computers if possible) to ensure it works correctly. Name this .jar file with your group  number.  
+o Exp: 12.jar 
+• Create a video (maximum 3 minutes) in .mp4 format explaining how your project worked.  This 
+video must include a screenshot of your computer screen and, importantly, a video recording of 
+yourself on your camera!  Name the video " video_your Group Number ". 
+o Exp: video_ 12.mp4  
+
+
+================================================================================
+PAGE 4
+================================================================================
+
+• Place the files you created as described above ( report_ 12.zip, src_12.zip, lib_12.zip, 12.jar, 
+video_ 12.mp4 ) into a folder named after your group  number, and compress this folder in .zip format 
+to obtain the final submission document.  
+o Exp: 12.zip 
+o Note: Please submit only one file for your project. Do not submit any additional files!  
+o Note:  Each group should only make one submission . 
+• The project will be carried out in groups of two . 
+• Projects that are identical or significantly similar to each other will be considered plagiarism and 
+will be punished severely according to the relevant regulations.  
+• You will submit your projects through the "  Proje Teslimi " class activity on Google Classroom, code 
+rhql3fpr , titled "  NYP Lab 2526 Güz ". Therefore, be sure to join this class.  
+ 
+• Deadline:  09.01.2026 23:59 ( with Turkish Timezone ) 
+o Submissions made after this date will not be considered.  
+o The system will automatically shut down when the scheduled time arrives, so please 
+complete your project uploads in time.  
+o Submit your .zip file only ones. Do not resubmit for correction purposes!  
+ 
+• Project controls  will be conducted online by our research assistants during the final week s, 
+between January 13 -22, 2026. Detailed explanations regarding this will be provided after project 
+submissions are completed.  
+
+================================================================================
+PROJE GELİŞİM GEÇMİŞİ (PROJECT DEVELOPMENT HISTORY)
+================================================================================
+
+Bu bölüm projenin gelişim sürecini takip etmek için kullanılmaktadır.
+Her kod değişikliği, ekleme veya güncelleme bu bölüme kaydedilecektir.
+
+---
+TARİH: 2026-01-05 18:38
+DURUM: Proje Başlangıç Durumu
+
+MEVCUT DOSYALAR:
+- src/thread/SeatReservationThread.java (açık)
+- src/service/SeatManager.java (açık)
+
+YAPILAN İŞLEM:
+- project_requirements.txt dosyası .gitignore'dan çıkarıldı
+- Proje geliştirme geçmişi takip sistemi oluşturuldu
+- Bu bölüm eklendi
+
+SONRAKİ ADIMLAR:
+- Multithreading senaryoları üzerinde çalışılacak
+- SeatReservationThread ve SeatManager sınıfları geliştirilecek
+
+---
+TARİH: 2026-01-05 18:50
+DURUM: GUI Ekranları Geliştirildi
+
+GÜNCELLENEN DOSYALAR:
+- src/gui/LoginScreen.java (güncellendi - navigasyon eklendi)
+- src/gui/FlightSearchScreen.java (yeni - modern tasarım)
+- src/gui/ReservationManagementScreen.java (yeni - modern tasarım)
+- src/gui/AdminScreen.java (yeni - modern tasarım)
+- src/gui/SeatReservationPanel.java (yeni - multithreading demo)
+
+YAPILAN İŞLEMLER:
+1. FlightSearchScreen - Uçuş arama ve rezervasyon ekranı
+   - Gradient arka plan ile modern tasarım
+   - Kalkış/Varış şehir seçimi (ComboBox)
+   - Tarih seçici (JSpinner)
+   - Uçuş sonuçları kartları
+   - Koltuk seçimi butonu
+
+2. ReservationManagementScreen - Rezervasyon yönetim ekranı
+   - Rezervasyon kodu ile arama
+   - Tüm rezervasyonları görüntüleme
+   - Rezervasyon detayları kartları
+   - İptal etme ve detay görüntüleme butonları
+
+3. AdminScreen - Yönetici paneli
+   - Tabbed interface (Uçuş Yönetimi, Personel Yönetimi, Raporlar)
+   - Uçuş ekleme/düzenleme/silme
+   - Personel yönetimi
+   - Rapor oluşturma (ReportGeneratorThread için hazır)
+
+4. SeatReservationPanel - Multithreading senaryosu
+   - 30x6 koltuk grid görselleştirmesi
+   - Senkronizasyon kontrolü (checkbox)
+   - 90 yolcu için eşzamanlı rezervasyon simülasyonu
+   - Dolu/Boş koltuk sayacı
+
+5. LoginScreen - Navigasyon eklendi
+   - Staff Login -> AdminScreen
+   - User Login -> Kullanıcı menüsü (Uçuş Arama, Rezervasyon Yönetimi, Koltuk Demo)
+
+TASARIM ÖZELLİKLERİ:
+- Tüm ekranlarda gradient arka plan (mavi tonları)
+- Rounded corner butonlar ve paneller
+- Hover efektleri
+- Modern renkler ve tipografi (Segoe UI)
+- Responsive ve kullanıcı dostu arayüz
+
+SONRAKİ ADIMLAR:
+- Backend servisleri ile entegrasyon
+- Multithreading senaryolarının tam implementasyonu
+- Unit testlerin tamamlanması
+
+---
+
+---
+
+---
+TARİH: 2026-01-05 19:15
+DURUM: GUI Ekranları Tamamlandı
+
+GÜNCELLENEN DOSYALAR:
+- src/gui/LoginScreen.java (navigasyon eklendi)
+- src/gui/FlightSearchScreen.java (tam implementasyon)
+- src/gui/ReservationManagementScreen.java (tam implementasyon)
+- src/gui/AdminScreen.java (tam implementasyon)
+- src/gui/SeatReservationPanel.java (multithreading demo)
+
+ÖZELLİKLER:
+
+1. LoginScreen:
+   - Staff Login -> AdminScreen (şifre: admin)
+   - User Login -> Kullanıcı menüsü
+
+2. FlightSearchScreen:
+   - Kalkış/Varış şehir seçimi
+   - Tarih seçici
+   - Uçuş arama (mock data)
+   - Koltuk seçimi ve rezervasyon yapma
+
+3. ReservationManagementScreen:
+   - Rezervasyon kodu ile arama
+   - Tüm rezervasyonları görüntüleme
+   - Detay görüntüleme
+   - Rezervasyon iptali
+
+4. AdminScreen:
+   - Uçuş Yönetimi (ekle/düzenle/sil)
+   - Personel Yönetimi (ekle/düzenle/sil)
+   - Rapor oluşturma (doluluk, gelir, uçuş, yolcu)
+
+5. SeatReservationPanel:
+   - 30x6 koltuk grid görselleştirmesi
+   - Senkronizasyon kontrolü (checkbox)
+   - 90 yolcu eşzamanlı rezervasyon simülasyonu
+   - Dolu/Boş koltuk sayacı
+
+NOT: Backend henüz hazır olmadığı için mock data kullanılmaktadır.
+
+---
+TARİH: 2026-01-05 18:56
+DURUM: Proje Klasör Yapısı Yeniden Düzenlendi
+
+YAPILAN İŞLEM:
+Proje klasör yapısı Java standartlarına uygun hale getirildi.
+
+ESKİ YAPI:
+- src/ (direkt kaynak dosyalar)
+- test/ (test dosyaları)
+
+YENİ YAPI:
+- src/main/java/ (kaynak dosyalar)
+- src/test/java/ (test dosyaları)
+
+DEĞİŞİKLİKLER:
+1. src/main/java/ klasörü oluşturuldu
+2. src/test/java/ klasörü oluşturuldu
+3. Tüm kaynak dosyalar src/main/java/ altına taşındı
+4. Tüm test dosyaları src/test/java/ altına taşındı
+5. Eski test/ klasörü kaldırıldı
+
+AVANTAJLAR:
+- Maven/Gradle standart yapısına uyumlu
+- IDE'ler tarafından otomatik tanınır
+- Build araçları ile kolay entegrasyon
+- Profesyonel Java proje yapısı
+
+---

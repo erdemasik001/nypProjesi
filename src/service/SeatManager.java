@@ -225,4 +225,19 @@ public class SeatManager {
         char letter = (char) ('A' + (number - 1) % 6);
         return row + String.valueOf(letter);
     }
+
+    public Seat getRandomAvailableSeat(Plane plane) {
+        if (plane == null) {
+            throw new IllegalArgumentException("Plane cannot be empty");
+        }
+
+        List<Seat> availableSeats = getAvailableSeats(plane);
+
+        if (availableSeats.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        return availableSeats.get(random.nextInt(availableSeats.size()));
+    }
 }

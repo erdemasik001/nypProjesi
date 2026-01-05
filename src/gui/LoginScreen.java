@@ -76,6 +76,8 @@ public class LoginScreen extends JFrame {
         mainPanel.add(footerLabel);
 
         add(mainPanel);
+
+        setupButtonActions();
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {
@@ -122,6 +124,40 @@ public class LoginScreen extends JFrame {
         });
 
         return button;
+    }
+
+    private void setupButtonActions() {
+        // Staff Login -> Admin Screen
+        staffButton.addActionListener(e -> {
+            String password = JOptionPane.showInputDialog(this, "Staff Password:", "Login", JOptionPane.PLAIN_MESSAGE);
+            if (password != null && password.equals("admin")) {
+                dispose();
+                new AdminScreen().setVisible(true);
+            } else if (password != null) {
+                JOptionPane.showMessageDialog(this, "Wrong password!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // User Login -> User Menu
+        userButton.addActionListener(e -> {
+            String[] options = { "Search Flights", "My Reservations", "Seat Demo", "Cancel" };
+            int choice = JOptionPane.showOptionDialog(this,
+                    "Please select an action:", "User Menu",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                    null, options, options[0]);
+
+            switch (choice) {
+                case 0:
+                    new FlightSearchScreen().setVisible(true);
+                    break;
+                case 1:
+                    new ReservationManagementScreen().setVisible(true);
+                    break;
+                case 2:
+                    new SeatReservationPanel().setVisible(true);
+                    break;
+            }
+        });
     }
 
     public static void main(String[] args) {
