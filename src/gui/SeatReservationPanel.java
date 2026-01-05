@@ -175,18 +175,34 @@ public class SeatReservationPanel extends JFrame {
         Thread[] threads = new Thread[90];
         for (int i = 0; i < 90; i++) {
             threads[i] = new Thread(() -> {
-                Random rand = new Random();
-                int row, col;
-                do {
-                    row = rand.nextInt(ROWS);
-                    col = rand.nextInt(COLS);
-                } while (seatStatus[row][col]);
                 if (sync) {
                     synchronized (lock) {
+                        Random rand = new Random();
+                        int row, col;
+                        do {
+                            row = rand.nextInt(ROWS);
+                            col = rand.nextInt(COLS);
+                        } while (seatStatus[row][col]);
                         reserveSeat(row, col);
                     }
                 } else {
-                    reserveSeat(row, col);
+                    Random rand = new Random();
+                    int row, col;
+                    row = rand.nextInt(ROWS);
+                    col = rand.nextInt(COLS);
+                    int attempts = 0;
+                    while (seatStatus[row][col] && attempts < 50) {
+                        row = rand.nextInt(ROWS);
+                        col = rand.nextInt(COLS);
+                        attempts++;
+                    }
+                    if (!seatStatus[row][col]) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                        }
+                        reserveSeat(row, col);
+                    }
                 }
             });
         }

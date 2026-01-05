@@ -4,6 +4,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import thread.ReportGeneratorThread;
+import service.FlightManager;
+import service.SeatManager;
+import model.flight.Plane;
+import model.flight.Seat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AdminScreen extends JFrame {
     private JTabbedPane tabbedPane;
@@ -11,9 +18,58 @@ public class AdminScreen extends JFrame {
     private DefaultTableModel flightTableModel;
     private JTable staffTable;
     private DefaultTableModel staffTableModel;
+    private FlightManager flightManager;
+    private SeatManager seatManager;
+    private Map<String, Plane> flightPlaneMap;
 
     public AdminScreen() {
+        this.flightManager = new FlightManager();
+        this.seatManager = new SeatManager();
+        this.flightPlaneMap = new HashMap<>();
+        initializeMockData();
         initializeUI();
+    }
+
+    private void initializeMockData() {
+        try {
+            Plane plane1 = new Plane("P001", "Boeing 737", 180);
+            seatManager.createSeatingArrangement(plane1, 150, 30, 1000.0, 2500.0);
+            flightManager.createFlight("TK101", "Istanbul", "Ankara",
+                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(8, 0), 90);
+            flightPlaneMap.put("TK101", plane1);
+
+            int reservedSeats1 = (int) (Math.random() * 80) + 40;
+            reserveRandomSeats(plane1, reservedSeats1);
+
+            Plane plane2 = new Plane("P002", "Airbus A320", 180);
+            seatManager.createSeatingArrangement(plane2, 150, 30, 950.0, 2300.0);
+            flightManager.createFlight("TK102", "Istanbul", "Ankara",
+                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(12, 30), 90);
+            flightPlaneMap.put("TK102", plane2);
+
+            int reservedSeats2 = (int) (Math.random() * 60) + 30;
+            reserveRandomSeats(plane2, reservedSeats2);
+
+            Plane plane3 = new Plane("P003", "Boeing 737", 150);
+            seatManager.createSeatingArrangement(plane3, 120, 30, 900.0, 2200.0);
+            flightManager.createFlight("TK201", "Ankara", "Izmir",
+                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(9, 15), 75);
+            flightPlaneMap.put("TK201", plane3);
+
+            int reservedSeats3 = (int) (Math.random() * 50) + 20;
+            reserveRandomSeats(plane3, reservedSeats3);
+
+        } catch (Exception e) {
+            System.err.println("Error initializing mock data: " + e.getMessage());
+        }
+    }
+
+    private void reserveRandomSeats(Plane plane, int count) {
+        java.util.List<Seat> availableSeats = seatManager.getAvailableSeats(plane);
+        java.util.Collections.shuffle(availableSeats);
+        for (int i = 0; i < Math.min(count, availableSeats.size()); i++) {
+            availableSeats.get(i).setReserved(true);
+        }
     }
 
     private void initializeUI() {
@@ -35,6 +91,7 @@ public class AdminScreen extends JFrame {
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
         tabbedPane.addTab("✈ Flight Management", createFlightPanel());
         tabbedPane.addTab("👥 Staff Management", createStaffPanel());
+        tabbedPane.addTab("📊 Reports", createReportsPanel());
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -226,6 +283,92 @@ public class AdminScreen extends JFrame {
         }
         if (JOptionPane.showConfirmDialog(this, "Delete this staff member?", "Confirm", JOptionPane.YES_NO_OPTION) == 0)
             staffTableModel.removeRow(r);
+    }
+
+    private JPanel createReportsPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(new Color(236, 240, 241));
+
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        topPanel.setOpaque(false);
+
+        JLabel titleLabel = new JLabel("📊 Flight Occupancy Report");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        topPanel.add(titleLabel);
+
+        panel.add(topPanel, BorderLayout.NORTH);
+
+        JTextArea reportArea = new JTextArea();
+        reportArea.setFont(new Font("Courier New", Font.PLAIN, 12));
+        reportArea.setEditable(false);
+        reportArea.setText("Click 'Generate Report' to create a flight occupancy report.\n\n" +
+                "This report will show:\n" +
+                "  • Occupancy rate for all flights\n" +
+                "  • Total seats vs occupied seats\n" +
+                "  • Overall statistics\n\n" +
+                "Note: Report generation runs in a separate thread to avoid blocking the GUI.");
+        JScrollPane scrollPane = new JScrollPane(reportArea);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        btnPanel.setOpaque(false);
+
+        JButton generateBtn = createStyledButton("Generate Report", new Color(155, 89, 182));
+        generateBtn.setPreferredSize(new Dimension(180, 45));
+        generateBtn.addActionListener(e -> generateReport(reportArea, generateBtn));
+
+        btnPanel.add(generateBtn);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void generateReport(JTextArea reportArea, JButton generateBtn) {
+        generateBtn.setEnabled(false);
+
+        ReportGeneratorThread reportThread = new ReportGeneratorThread(
+                flightManager,
+                seatManager,
+                flightPlaneMap,
+                new ReportGeneratorThread.ReportCallback() {
+                    @Override
+                    public void onReportStarted() {
+                        SwingUtilities.invokeLater(() -> {
+                            reportArea.setText(
+                                    "⏳ Preparing report...\n\nPlease wait while we calculate occupancy rates for all flights.\n"
+                                            +
+                                            "This process is running in a separate thread to keep the GUI responsive.");
+                        });
+                    }
+
+                    @Override
+                    public void onReportCompleted(String report) {
+                        SwingUtilities.invokeLater(() -> {
+                            reportArea.setText(report);
+                            reportArea.setCaretPosition(0);
+                            generateBtn.setEnabled(true);
+                            JOptionPane.showMessageDialog(AdminScreen.this,
+                                    "Report generated successfully!",
+                                    "Success",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        });
+                    }
+
+                    @Override
+                    public void onReportError(String error) {
+                        SwingUtilities.invokeLater(() -> {
+                            reportArea.setText("❌ Error generating report:\n\n" + error);
+                            generateBtn.setEnabled(true);
+                            JOptionPane.showMessageDialog(AdminScreen.this,
+                                    "Error: " + error,
+                                    "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        });
+                    }
+                });
+
+        reportThread.start();
     }
 
     private JButton createStyledButton(String text, Color bgColor) {
