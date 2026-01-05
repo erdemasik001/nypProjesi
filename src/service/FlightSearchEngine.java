@@ -15,16 +15,18 @@ public class FlightSearchEngine {
             if (flight == null) {
                 continue;
             }
-            if (flight.getDeparturePlace() != null && flight.getDeparturePlace().equalsIgnoreCase(departurePlace) && flight.getArrivalPlace() != null && flight.getArrivalPlace().equalsIgnoreCase(arrivalPlace)) {
+            if (flight.getDeparturePlace() != null && flight.getDeparturePlace().equalsIgnoreCase(departurePlace)
+                    && flight.getArrivalPlace() != null && flight.getArrivalPlace().equalsIgnoreCase(arrivalPlace)) {
                 result.add(flight);
             }
         }
         return result;
     }
-    public List<Flight> excludeDepartedFlights(List<Flight> flights , LocalDateTime now){
+
+    public List<Flight> excludeDepartedFlights(List<Flight> flights, LocalDateTime now) {
         List<Flight> result = new ArrayList<>();
         for (Flight flight : flights) {
-            LocalDateTime departureDateTime = LocalDateTime.of(flight.getDate(),flight.getHour());
+            LocalDateTime departureDateTime = LocalDateTime.of(flight.getDate(), flight.getHour());
 
             if (departureDateTime.isAfter(now)) {
                 result.add(flight);
