@@ -35,7 +35,7 @@ hs_err_pid*
 Thumbs.db
 
 # Build directories
-out/
+
 target/
 build/
 
