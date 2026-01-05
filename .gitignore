@@ -1,5 +1,5 @@
 # Compiled class files
-
+*.class
 
 # Log files
 *.log
@@ -38,6 +38,7 @@ Thumbs.db
 
 target/
 build/
+out/
 
 # Temporary files
 *.tmp
