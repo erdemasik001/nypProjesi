@@ -141,6 +141,8 @@ public class SeatReservationPanel extends JFrame {
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
         btn.setPreferredSize(new Dimension(45, 25));
         btn.addActionListener(e -> toggleSeat(row, col, btn));
         return btn;
