@@ -54,3 +54,5 @@ __pycache__/
 # Project specific
 
 extract_pdf.py
+.project 
+.classpath 

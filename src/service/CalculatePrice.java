@@ -15,7 +15,10 @@ public class CalculatePrice {
             throw new IllegalArgumentException("Seat cannot be null");
         }
 
-        double basePrice = seat.getPrice();
+        // Koltuk fiyatını sınıfa göre (Economy / Business) ayarla
+        // Economy -> basePrice
+        // Business -> basePrice * BUSINESS_CLASS_MULTIPLIER
+        double basePrice = calculateSeatPrice(seat.getPrice(), seat.getSeatClass());
         double baggageFee = calculateBaggageFee(seat.getSeatClass(), baggage);
 
         return basePrice + baggageFee;
