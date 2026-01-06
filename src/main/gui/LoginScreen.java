@@ -127,7 +127,6 @@ public class LoginScreen extends JFrame {
     }
 
     private void setupButtonActions() {
-        // Staff Login -> Admin Screen
         staffButton.addActionListener(e -> {
             String password = JOptionPane.showInputDialog(this, "Staff Password:", "Login", JOptionPane.PLAIN_MESSAGE);
             if (password != null && password.equals("admin")) {
@@ -138,7 +137,6 @@ public class LoginScreen extends JFrame {
             }
         });
 
-        // User Login -> User Menu
         userButton.addActionListener(e -> {
             String[] options = { "Search Flights", "My Reservations", "Seat Demo", "Cancel" };
             int choice = JOptionPane.showOptionDialog(this,

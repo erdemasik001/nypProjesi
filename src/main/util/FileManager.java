@@ -8,25 +8,18 @@ public class FileManager {
 
     private static String dataDirectory = null;
 
-    /**
-     * Gets the data directory path. This method determines the correct path
-     * whether running from IDE or from a JAR file.
-     * Data files are expected to be in the same directory as the JAR or in
-     * the parent directory of src/main when running from IDE.
-     */
     public static String getDataDirectory() {
         if (dataDirectory != null) {
             return dataDirectory;
         }
 
         try {
-            // Get the location of the current class
+
             String jarPath = FileManager.class.getProtectionDomain()
                     .getCodeSource().getLocation().toURI().getPath();
 
             File jarFile = new File(jarPath);
 
-            // On Windows, remove leading slash from path like /C:/...
             String path = jarFile.getAbsolutePath();
             if (path.startsWith("/") && path.length() > 2 && path.charAt(2) == ':') {
                 path = path.substring(1);
@@ -34,17 +27,15 @@ public class FileManager {
             jarFile = new File(path);
 
             if (jarFile.isFile() && jarFile.getName().endsWith(".jar")) {
-                // Running from JAR - data files are in the same directory as JAR
+
                 dataDirectory = jarFile.getParent() + File.separator;
             } else {
-                // Running from IDE/classes - look for src folder structure
-                // The class file is in out/util/FileManager.class or similar
-                // We need to go up and find where src is
+
                 File current = jarFile;
                 while (current != null) {
                     File srcFolder = new File(current, "src");
                     if (srcFolder.exists() && srcFolder.isDirectory()) {
-                        // Check if flights.txt exists in src
+
                         File testFile = new File(srcFolder, "flights.txt");
                         if (testFile.exists()) {
                             dataDirectory = srcFolder.getAbsolutePath() + File.separator;
@@ -54,14 +45,13 @@ public class FileManager {
                     current = current.getParentFile();
                 }
 
-                // Fallback: use relative path (original behavior)
                 if (dataDirectory == null) {
                     dataDirectory = "src" + File.separator;
                 }
             }
         } catch (Exception e) {
             System.err.println("Error determining data directory: " + e.getMessage());
-            // Fallback to relative path
+
             dataDirectory = "src" + File.separator;
         }
 
@@ -69,12 +59,6 @@ public class FileManager {
         return dataDirectory;
     }
 
-    /**
-     * Gets the full path for a data file.
-     * 
-     * @param filename The filename (e.g., "flights.txt" or "TK0001.txt")
-     * @return The full path to the file
-     */
     public static String getDataFilePath(String filename) {
         return getDataDirectory() + filename;
     }
@@ -102,7 +86,6 @@ public class FileManager {
     public static boolean writeLines(String filePath, List<String> lines, boolean append) {
         File file = new File(filePath);
 
-        // Ensure parent directory exists
         if (file.getParentFile() != null && !file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }

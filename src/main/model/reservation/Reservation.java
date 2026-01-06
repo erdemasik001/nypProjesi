@@ -20,7 +20,6 @@ public class Reservation {
         this.status = "Active";
     }
 
-    // Additional constructor for loading from file with status
     public Reservation(String reservationCode, Flight flight, Seat seat, Passenger passenger, Date dateOfReservation,
             String status) {
         this.reservationCode = reservationCode;

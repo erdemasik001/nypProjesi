@@ -18,19 +18,16 @@ public class FlightSearchScreen extends JFrame {
     private JTable flightTable;
     private DefaultTableModel tableModel;
 
-    // City list
     private String[] cities = { "Istanbul", "Ankara", "Izmir", "Antalya", "Trabzon", "Adana", "Bursa", "Konya" };
 
     private ReservationManager reservationManager;
     private service.FlightManager flightManager;
 
-    // Buttons
     private JButton selectSeatBtn;
     private JButton reserveBtn;
     private JButton cancelBtn;
     private JButton backBtn;
 
-    // Temporary Passenger Data
     private String tempName;
     private String tempSurname;
     private Flight tempFlight;
@@ -47,7 +44,6 @@ public class FlightSearchScreen extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Main panel - gradient background
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -64,27 +60,22 @@ public class FlightSearchScreen extends JFrame {
         mainPanel.setLayout(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Title
         JLabel titleLabel = new JLabel("✈ Flight Search", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
-        // Search panel
         JPanel searchPanel = createSearchPanel();
         mainPanel.add(searchPanel, BorderLayout.WEST);
 
-        // Results panel
         JPanel resultsPanel = createResultsPanel();
         mainPanel.add(resultsPanel, BorderLayout.CENTER);
 
-        // Bottom buttons
         JPanel bottomPanel = createBottomPanel();
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
 
-        // Load all flights initially
         loadAllFlights();
     }
 
@@ -95,7 +86,6 @@ public class FlightSearchScreen extends JFrame {
         panel.setPreferredSize(new Dimension(250, 400));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        // Departure city
         JLabel depLabel = new JLabel("Departure City:");
         depLabel.setForeground(Color.WHITE);
         depLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -110,7 +100,6 @@ public class FlightSearchScreen extends JFrame {
         panel.add(departureField);
         panel.add(Box.createVerticalStrut(15));
 
-        // Arrival city
         JLabel arrLabel = new JLabel("Arrival City:");
         arrLabel.setForeground(Color.WHITE);
         arrLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -125,7 +114,6 @@ public class FlightSearchScreen extends JFrame {
         panel.add(arrivalField);
         panel.add(Box.createVerticalStrut(15));
 
-        // Date
         JLabel dateLabel = new JLabel("Date:");
         dateLabel.setForeground(Color.WHITE);
         dateLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -142,7 +130,6 @@ public class FlightSearchScreen extends JFrame {
         panel.add(dateSpinner);
         panel.add(Box.createVerticalStrut(25));
 
-        // Search button
         JButton searchBtn = createStyledButton("Search Flights", new Color(46, 204, 113));
         searchBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         searchBtn.setMaximumSize(new Dimension(220, 45));
@@ -182,7 +169,7 @@ public class FlightSearchScreen extends JFrame {
 
                     if (found) {
                         popup.show(textField, 0, textField.getHeight());
-                        textField.requestFocus(); // Keep focus on text field
+                        textField.requestFocus();
                     } else {
                         popup.setVisible(false);
                     }
@@ -200,7 +187,6 @@ public class FlightSearchScreen extends JFrame {
         resultsLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         panel.add(resultsLabel, BorderLayout.NORTH);
 
-        // Table
         String[] columns = { "Flight No", "Departure", "Arrival", "Date", "Time", "Price", "Available Seats" };
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -228,7 +214,7 @@ public class FlightSearchScreen extends JFrame {
         selectSeatBtn = createStyledButton("Select Seat", new Color(52, 152, 219));
         selectSeatBtn.setPreferredSize(new Dimension(150, 45));
         selectSeatBtn.addActionListener(e -> openSeatSelection());
-        selectSeatBtn.setVisible(false); // Initially hidden
+        selectSeatBtn.setVisible(false);
         panel.add(selectSeatBtn);
 
         reserveBtn = createStyledButton("Make Reservation", new Color(155, 89, 182));
@@ -239,7 +225,7 @@ public class FlightSearchScreen extends JFrame {
         cancelBtn = createStyledButton("Cancel", new Color(231, 76, 60));
         cancelBtn.setPreferredSize(new Dimension(120, 45));
         cancelBtn.addActionListener(e -> cancelReservationProcess());
-        cancelBtn.setVisible(false); // Initially hidden
+        cancelBtn.setVisible(false);
         panel.add(cancelBtn);
 
         backBtn = createStyledButton("Go Back", new Color(149, 165, 166));
@@ -284,8 +270,6 @@ public class FlightSearchScreen extends JFrame {
 
         tableModel.setRowCount(0);
 
-        // SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        // Convert Spinner Date to LocalDate
         Date spinnerDate = (Date) dateSpinner.getValue();
         LocalDate searchDate = spinnerDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 
@@ -327,7 +311,6 @@ public class FlightSearchScreen extends JFrame {
             return;
         }
 
-        // Get passenger info
         JTextField nameField = new JTextField();
         JTextField surnameField = new JTextField();
 
@@ -350,16 +333,13 @@ public class FlightSearchScreen extends JFrame {
                 return;
             }
 
-            // Store Info Temporarily
             this.tempName = name;
             this.tempSurname = surname;
 
-            // Fetch flight details
             String flightNo = (String) tableModel.getValueAt(selectedRow, 0);
             this.tempFlight = flightManager.getFlight(flightNo);
 
-            // Update UI State
-            flightTable.setEnabled(false); // Lock selection
+            flightTable.setEnabled(false);
             reserveBtn.setVisible(false);
             backBtn.setVisible(false);
             selectSeatBtn.setVisible(true);
@@ -368,7 +348,6 @@ public class FlightSearchScreen extends JFrame {
     }
 
     private void cancelReservationProcess() {
-        // Reset UI State
         tempName = null;
         tempSurname = null;
         tempFlight = null;
@@ -395,10 +374,10 @@ public class FlightSearchScreen extends JFrame {
                 reservationManager,
                 passenger,
                 () -> {
-                    // On Success Callback
+
                     JOptionPane.showMessageDialog(this, "Reservation process completed.");
-                    loadAllFlights(); // Refresh table (seats count)
-                    cancelReservationProcess(); // Reset UI
+                    loadAllFlights(); 
+                    cancelReservationProcess(); 
                 });
         seatPanel.setVisible(true);
     }

@@ -15,7 +15,6 @@ public class SeatManagerTest {
     void setUp() {
         seatManager = new SeatManager();
         plane = new Plane("P001", "Boeing 737", 100);
-        // Add some seats using SeatManager
         seatManager.createSeatingArrangement(plane, 5, 5, 100.0, 200.0);
     }
 
@@ -24,10 +23,9 @@ public class SeatManagerTest {
         int initialEmpty = seatManager.getAvailableSeatsCount(plane);
         assertEquals(10, initialEmpty, "Should start with 10 empty seats");
 
-        // Reserve a seat
         Seat seat = seatManager.getSeat(plane, "1A");
         assertNotNull(seat, "Seat 1A should exist");
-        seat.setReserved(true); // Manually reserve since SeatManager just reads the state
+        seat.setReserved(true);
 
         int newEmpty = seatManager.getAvailableSeatsCount(plane);
         assertEquals(9, newEmpty, "Empty seats count should decrease by 1");
@@ -40,7 +38,6 @@ public class SeatManagerTest {
 
     @Test
     void testExceptionWhenRemovingNonExistentSeat() {
-        // SeatManager.removeSeatFromPlane throws exception if seat doesn't exist
         assertThrows(IllegalArgumentException.class, () -> {
             seatManager.removeSeatFromPlane(plane, "99Z");
         }, "Should throw exception when trying to remove a seat that doesn't exist");

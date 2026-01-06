@@ -30,14 +30,13 @@ public class AdminScreen extends JFrame {
         this.staffManager = new StaffManager();
         this.seatManager = new SeatManager();
 
-        // initializeMockData(); // REMOVED
+
         initializeUI();
         refreshFlightTable();
         refreshStaffTable();
     }
 
-    // initializeMockData RESERVED for now but unused to avoid complicating map
-    // logic with planes
+
 
     private void initializeUI() {
         setTitle("Admin/Staff Panel");
@@ -112,7 +111,6 @@ public class AdminScreen extends JFrame {
         flightTableModel = new DefaultTableModel(cols, 0);
         flightTable = new JTable(flightTableModel);
         flightTable.setRowHeight(30);
-        // loadMockFlights(); // Handled by refresh
         panel.add(new JScrollPane(flightTable), BorderLayout.CENTER);
         return panel;
     }
@@ -142,7 +140,7 @@ public class AdminScreen extends JFrame {
         staffTableModel = new DefaultTableModel(cols, 0);
         staffTable = new JTable(staffTableModel);
         staffTable.setRowHeight(30);
-        // loadMockStaff(); // Handled by refresh
+
         panel.add(new JScrollPane(staffTable), BorderLayout.CENTER);
         return panel;
     }
@@ -169,44 +167,41 @@ public class AdminScreen extends JFrame {
         }
     }
 
-    // Replace loadMockFlights and loadMockStaff calls in createPanel methods will
-    // be handled by refresh calls
+
 
     private void addFlight() {
         JTextField no = new JTextField(), dep = new JTextField(), arr = new JTextField();
         JTextField date = new JTextField(), time = new JTextField(), price = new JTextField();
-        // Capacity is fixed at 180
+
         Object[] f = { "Flight No:", no, "Departure:", dep, "Arrival:", arr, "Date:", date, "Time:", time,
                 "Price:", price };
         if (JOptionPane.showConfirmDialog(this, f, "New Flight", JOptionPane.OK_CANCEL_OPTION) == 0) {
             try {
-                // Parse date (allow d.M.yyyy or dd.MM.yyyy or yyyy-MM-dd)
+
                 String dateStr = date.getText().trim();
                 java.time.LocalDate localDate;
                 try {
-                    // Try European format with dots
+
                     localDate = java.time.LocalDate.parse(dateStr,
                             java.time.format.DateTimeFormatter.ofPattern("d.MM.yyyy"));
                 } catch (Exception e1) {
                     try {
-                        // Try European format with slashes
+
                         localDate = java.time.LocalDate.parse(dateStr,
                                 java.time.format.DateTimeFormatter.ofPattern("d/MM/yyyy"));
                     } catch (Exception e2) {
-                        // Fallback to default ISO
+
                         localDate = java.time.LocalDate.parse(dateStr);
                     }
                 }
 
-                // Parse time (allow HH:mm or HH.mm)
+
                 String timeStr = time.getText().trim().replace(".", ":");
                 if (timeStr.length() == 4 && timeStr.indexOf(':') == 1) {
-                    timeStr = "0" + timeStr; // Pad 8:00 to 08:00 if needed for standard parsers, though LocalTime.parse
-                                             // is usually smart enough specific patterns might be needed
-                }
+                    timeStr = "0" + timeStr; }
                 java.time.LocalTime localTime = java.time.LocalTime.parse(timeStr);
 
-                // Parse price
+
                 double priceVal = Double.parseDouble(price.getText());
 
                 flightManager.createFlight(no.getText(), dep.getText(), arr.getText(),
@@ -234,9 +229,7 @@ public class AdminScreen extends JFrame {
         JTextField arr = new JTextField((String) flightTableModel.getValueAt(r, 2));
         JTextField date = new JTextField(flightTableModel.getValueAt(r, 3).toString());
         JTextField time = new JTextField(flightTableModel.getValueAt(r, 4).toString());
-        // Capacity fixed at 180, not editable
 
-        // Extract raw price from display string "1500.00 TL" -> "1500.00"
         String rawPrice = ((String) flightTableModel.getValueAt(r, 6)).replace(" TL", "").replace(",", ".");
         JTextField price = new JTextField(rawPrice);
 
@@ -247,7 +240,7 @@ public class AdminScreen extends JFrame {
 
         if (JOptionPane.showConfirmDialog(this, f, "Edit Flight", JOptionPane.OK_CANCEL_OPTION) == 0) {
             try {
-                // Parse date (allow d.M.yyyy or dd.MM.yyyy or yyyy-MM-dd)
+
                 String dateStr = date.getText().trim();
                 java.time.LocalDate localDate;
                 try {
@@ -262,11 +255,11 @@ public class AdminScreen extends JFrame {
                     }
                 }
 
-                // Parse time
+
                 String timeStr = time.getText().trim().replace(".", ":");
                 java.time.LocalTime localTime = java.time.LocalTime.parse(timeStr);
 
-                // Parse price
+
                 double priceVal = Double.parseDouble(price.getText());
 
                 flightManager.updateFlight(oldFlightNum, dep.getText(), arr.getText(),

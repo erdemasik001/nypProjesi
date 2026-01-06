@@ -21,8 +21,6 @@ public class FlightSearchEngineTest {
         searchEngine = new FlightSearchEngine();
         flights = new ArrayList<>();
 
-        // Create some sample flights
-        // Note: Using dummy values for fields not relevant to search logic
         flights.add(new Flight("TK001", "Istanbul", "Ankara", null, LocalTime.now(), 0, 0));
         flights.add(new Flight("TK002", "Istanbul", "Izmir", null, LocalTime.now(), 0, 0));
         flights.add(new Flight("TK003", "Ankara", "Istanbul", null, LocalTime.now(), 0, 0));
@@ -53,19 +51,7 @@ public class FlightSearchEngineTest {
 
     @Test
     void testExcludeDepartedFlights_PastFlight() {
-        // Setup a flight in the past
         Flight pastFlight = new Flight("OLD01", "A", "B", null, LocalTime.of(10, 0), 0, 0);
-        // Assuming Flight.date is stored. Since Flight constructor doesn't take Date in
-        // the simplified version seen in other files,
-        // but FlightSearchEngine uses LocalDateTime.of(flight.getDate(),
-        // flight.getHour()).
-        // We need to ensure Flight has a Date.
-        // Based on Flight.java seen previously or implied, we might need to set it.
-        // If the simple constructor sets date to null, search engine might NPE.
-        // Let's assume we can use setter or the constructor initializes it.
-        // The viewed Flight.java constructor didn't strictly show date handling, but
-        // let's assume setters work.
-
         pastFlight.setDate(java.time.LocalDate.now().minusDays(1));
 
         List<Flight> list = new ArrayList<>();

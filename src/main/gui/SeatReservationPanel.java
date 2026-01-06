@@ -20,7 +20,6 @@ public class SeatReservationPanel extends JFrame {
     private model.reservation.Passenger passenger;
     private Runnable onSuccessCallback;
 
-    // Simulation Constructor
     public SeatReservationPanel(String flightNo) {
         this.flightNo = flightNo;
         this.isSimulation = true;
@@ -29,7 +28,6 @@ public class SeatReservationPanel extends JFrame {
         initializeUI();
     }
 
-    // Real Reservation Constructor
     public SeatReservationPanel(String flightNo, service.ReservationManager rm, model.reservation.Passenger p,
             Runnable onSuccess) {
         this.flightNo = flightNo;
@@ -65,7 +63,7 @@ public class SeatReservationPanel extends JFrame {
         };
         mainPanel.setLayout(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        // Header
+
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         JLabel titleLabel = new JLabel("💺 Seat Map - " + flightNo, SwingConstants.CENTER);
@@ -84,7 +82,7 @@ public class SeatReservationPanel extends JFrame {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
         gridContainer.add(scrollPane, BorderLayout.CENTER);
-        // Legend
+
         JPanel legendPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
         legendPanel.setOpaque(false);
         legendPanel.add(createLegendItem(new Color(46, 204, 113), "Empty"));
@@ -95,7 +93,7 @@ public class SeatReservationPanel extends JFrame {
 
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
         bottomPanel.setOpaque(false);
-        // Stats panel
+
         JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
         statsPanel.setOpaque(false);
         occupiedLabel = new JLabel("Occupied: 0");
@@ -131,7 +129,6 @@ public class SeatReservationPanel extends JFrame {
             controlPanel.add(backBtn);
             bottomPanel.add(controlPanel, BorderLayout.CENTER);
         } else {
-            // Real Reservation Mode Controls
             JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
             controlPanel.setOpaque(false);
 
@@ -194,13 +191,10 @@ public class SeatReservationPanel extends JFrame {
                 updateStats();
             }
         } else {
-            // Real Reservation Mode
             if (seatStatus[row][col]) {
-                // Occupied
                 JOptionPane.showMessageDialog(this, "This seat is already occupied!", "Error",
                         JOptionPane.ERROR_MESSAGE);
             } else {
-                // Empty - Confirm Reservation
                 if (isBusinessSeat(row)) {
                     int confirmBusiness = JOptionPane.showConfirmDialog(this,
                             "Bu koltuk businesstir. Normal fiyatın üzerine fark eklenir.\nDevam etmek istiyor musunuz?",
@@ -223,28 +217,13 @@ public class SeatReservationPanel extends JFrame {
     }
 
     private void performReservation(int row, int col, String seatNumFull) {
-        // seatNumFull is like "1A"
         try {
-            // Update Seat File
             service.FlightManager fm = new service.FlightManager();
-            // Create Reservation Record
-            // Need a Flight object, currently we just have flightNo.
-            // Ideally we pass Flight object to constructor, but for now we
-            // fetch/reconstruct
             model.flight.Flight flight = fm.getFlight(flightNo);
-            // If flight is null (shouldn't be), we handle or error
 
-            // Create Seat object
-            // Assuming economy for now or read from file?
-            // We can read class from file in loadRealSeatData but for simplicity assuming
-            // ECONOMY
-            // But to be correct we should use what we found in file.
-            // We will improve loadRealSeatData to store class info if needed,
-            // Determine class and price
             model.flight.SeatClass seatClass = isBusinessSeat(row) ? model.flight.SeatClass.BUSINESS
                     : model.flight.SeatClass.ECONOMY;
 
-            // Calculate price using service
             service.CalculatePrice priceCalculator = new service.CalculatePrice();
             double finalPrice = priceCalculator.calculateSeatPrice(flight.getPrice(), seatClass);
 
@@ -253,7 +232,6 @@ public class SeatReservationPanel extends JFrame {
             String reservationCode = "RES" + System.currentTimeMillis();
             reservationManager.makeReservation(reservationCode, flight, seat, passenger, new java.util.Date());
 
-            // Update Seat File ONLY after successful reservation
             fm.updateSeatStatus(flightNo, seatNumFull, true);
 
             JOptionPane.showMessageDialog(this, "Reservation Successful!\nCode: " + reservationCode, "Success",
@@ -271,7 +249,6 @@ public class SeatReservationPanel extends JFrame {
     }
 
     private void loadRealSeatData() {
-        // Initialize all to false first
         for (int i = 0; i < ROWS; i++)
             for (int j = 0; j < COLS; j++)
                 seatStatus[i][j] = false;
@@ -280,14 +257,10 @@ public class SeatReservationPanel extends JFrame {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 3) {
-                String seatNum = parts[0]; // e.g. "1A"
+                String seatNum = parts[0];
                 boolean occupied = Boolean.parseBoolean(parts[2]);
 
                 if (occupied) {
-                    // Parse row/col from seatNum
-                    // 1A -> row 0, col 0
-                    // Row is number part - 1
-                    // Col is char part - 'A'
                     try {
                         String rowStr = seatNum.substring(0, seatNum.length() - 1);
                         char colChar = seatNum.charAt(seatNum.length() - 1);
@@ -295,18 +268,10 @@ public class SeatReservationPanel extends JFrame {
                         int c = colChar - 'A';
 
                         if (r >= 0 && r < ROWS && c >= 0 && c < 6) {
-                            // Note: seatStatus matches grid or logical?
-                            // seatStatus is [ROWS][COLS] where COLS=6.
-                            // So we trust logical.
                             seatStatus[r][c] = true;
 
-                            // Update UI Button
-                            // seatButtons is [ROWS][COLS] (logical 6 cols? No wait)
-                            // createSeatGrid uses: seatButtons[row][seatCol] = seatBtn;
-                            // where seatCol goes 0..5.
-                            // So seatButtons matches logical.
                             if (seatButtons[r][c] != null) {
-                                seatButtons[r][c].setBackground(new Color(231, 76, 60)); // Red
+                                seatButtons[r][c].setBackground(new Color(231, 76, 60));
                             }
                         }
                     } catch (Exception e) {
@@ -448,7 +413,6 @@ public class SeatReservationPanel extends JFrame {
     }
 
     private boolean isBusinessSeat(int row) {
-        // Rows 0-5 (1-6 visually) are Business
         return row < 6;
     }
 

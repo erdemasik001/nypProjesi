@@ -56,7 +56,7 @@ public class StaffManager {
     private void saveStaff() {
         List<String> lines = new ArrayList<>();
         for (Staff s : staffMap.values()) {
-            // CSV format: id,firstName,lastName,position,status
+
             String line = String.format("%s,%s,%s,%s,%s",
                     s.getId(), s.getFirstName(), s.getLastName(), s.getPosition(), s.getStatus());
             lines.add(line);

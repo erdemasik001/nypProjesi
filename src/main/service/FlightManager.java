@@ -15,13 +15,9 @@ public class FlightManager {
         loadFlights();
     }
 
-    // ... (existing createFlight methods)
-
-    // Add saving to all modification methods:
-
     private void saveFlights() {
         List<String> lines = new ArrayList<>();
-        // CSV: flightNum,dep,arr,date,time,duration,price
+
         for (Flight f : flights.values()) {
             String line = String.format(Locale.US, "%s,%s,%s,%s,%s,%d,%.2f",
                     f.getFlightNum(), f.getDeparturePlace(), f.getArrivalPlace(),
@@ -47,20 +43,19 @@ public class FlightManager {
                 Flight flight = new Flight(num, dep, arr, date, time, duration, price);
                 flights.put(num, flight);
             } else if (parts.length == 6) {
-                // Legacy support for files without price
+
                 String num = parts[0];
                 String dep = parts[1];
                 String arr = parts[2];
                 LocalDate date = LocalDate.parse(parts[3]);
                 LocalTime time = LocalTime.parse(parts[4]);
                 int duration = Integer.parseInt(parts[5]);
-                // Default price if missing
+
                 Flight flight = new Flight(num, dep, arr, date, time, duration, 1500.0);
                 flights.put(num, flight);
             }
         }
 
-        // Ensure seat files exist for all flights
         for (Flight f : flights.values()) {
             java.io.File seatFile = new java.io.File(util.FileManager.getDataFilePath(f.getFlightNum() + ".txt"));
             if (!seatFile.exists()) {
@@ -82,7 +77,7 @@ public class FlightManager {
         Flight flight = new Flight(flightNum, departurePlace, arrivalPlace, date, hour, duration, price);
         flights.put(flightNum, flight);
         saveFlights();
-        // duration is used as capacity in this codebase
+
         createSeatFile(flightNum, duration);
     }
 
@@ -259,18 +254,15 @@ public class FlightManager {
     private void createSeatFile(String flightNum, int capacity) {
         List<String> lines = new ArrayList<>();
         int seatCounter = 1;
-        // Generate seats assuming 100% Economy initially as per simple requirement
-        // Requirement: seat number, economy/business, true/false (dolu/boş)
+
         while (seatCounter <= capacity) {
-            // Generate row and letter
+
             int row = (seatCounter - 1) / 6 + 1;
             char letter = (char) ('A' + (seatCounter - 1) % 6);
             String seatNum = row + String.valueOf(letter);
 
-            // First 6 rows are BUSINESS
             String seatClass = (row <= 6) ? "BUSINESS" : "ECONOMY";
 
-            // Format: SeatNumber,Class,OccupancyStatus
             lines.add(seatNum + "," + seatClass + ",false");
             seatCounter++;
         }
@@ -286,8 +278,7 @@ public class FlightManager {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 3 && parts[0].equals(seatNum)) {
-                // Found the seat, update status
-                // Format: SeatNumber,Class,OccupancyStatus
+
                 newLines.add(parts[0] + "," + parts[1] + "," + occupied);
                 updated = true;
             } else {

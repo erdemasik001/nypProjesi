@@ -97,11 +97,8 @@ public class ReservationManager {
 
             String seatKey = generateSeatKey(flight.getFlightNum(), seat.getSeatNum());
 
-            // Instead of removing, we mark as Cancelled
-            // reservations.remove(reservationCode);
             reservation.setStatus("Cancelled");
 
-            // Free up the seat
             reservedSeats.remove(seatKey);
             seat.setReserved(false);
 
@@ -190,8 +187,6 @@ public class ReservationManager {
 
     private void saveReservations() {
         List<String> lines = new ArrayList<>();
-        // Header:
-        // reservationCode,flightNum,seatNum,passengerId,date,passName,passSurname,dep,arr,time,price,status
         for (Reservation r : reservations.values()) {
             StringBuilder sb = new StringBuilder();
             sb.append(r.getReservationCode()).append(",");
@@ -200,7 +195,6 @@ public class ReservationManager {
             sb.append(r.getPassenger() != null ? r.getPassenger().getPassangerId() : "").append(",");
             sb.append(r.getDateOfReservation() != null ? DATE_FORMAT.format(r.getDateOfReservation()) : "").append(",");
 
-            // New fields
             sb.append(r.getPassenger() != null ? r.getPassenger().getName() : "").append(",");
             sb.append(r.getPassenger() != null ? r.getPassenger().getSurname() : "").append(",");
             sb.append(r.getFlight() != null ? r.getFlight().getDeparturePlace() : "").append(",");
@@ -218,7 +212,7 @@ public class ReservationManager {
         List<String> lines = FileManager.readLines(FileManager.getDataFilePath(RESERVATIONS_FILE));
         for (String line : lines) {
             String[] parts = line.split(",");
-            if (parts.length >= 12) { // Now expects 12 fields
+            if (parts.length >= 12) {
                 String resCode = parts[0];
                 String flightNum = parts[1];
                 String seatNum = parts[2];
@@ -233,18 +227,13 @@ public class ReservationManager {
                 String status = parts[11];
 
                 if (!reservations.containsKey(resCode)) {
-                    // Reconstruct with full data
+
                     java.time.LocalTime time = null;
                     try {
                         time = java.time.LocalTime.parse(timeStr);
                     } catch (Exception e) {
                     }
 
-                    // Since we are loading from file and we don't store full flight objects in
-                    // reservation file yet,
-                    // we might need to fetch real flight from FlightManager if possible, or create
-                    // a dummy one.
-                    // For this task, we will create a dummy flight object with basic info available
                     Flight flight = new Flight(flightNum, dep, arr, null, time != null ? time : java.time.LocalTime.MIN,
                             0, 0.0);
 
@@ -261,7 +250,6 @@ public class ReservationManager {
                             seatClass = model.flight.SeatClass.BUSINESS;
                         }
                     } catch (Exception e) {
-                        // Keep default ECONOMY if parsing fails
                     }
                     Seat seat = new Seat(seatNum, seatClass, price, "Active".equals(status));
 
@@ -283,12 +271,7 @@ public class ReservationManager {
                     }
                 }
             } else if (parts.length >= 5) {
-                // Fallback for old format (will have unknowns)
-                // Or we can choose to ignore them. For now, let's keep the old logic as
-                // fallback
-                // identifying it by length
-                // ... (keep previous logic but we are overwriting it)
-                // Actually, it's better to force new format. Old format lines will be skipped.
+
             }
         }
     }
