@@ -4,14 +4,15 @@ import service.FlightManager;
 import service.SeatManager;
 import model.flight.Flight;
 import model.flight.Plane;
+import model.flight.Seat;
+import model.flight.SeatClass;
 import java.util.List;
-import java.util.Map;
 
 public class ReportGeneratorThread extends Thread {
 
     private FlightManager flightManager;
     private SeatManager seatManager;
-    private Map<String, Plane> flightPlaneMap;
+
     private ReportCallback callback;
     private volatile boolean isRunning;
 
@@ -25,11 +26,9 @@ public class ReportGeneratorThread extends Thread {
 
     public ReportGeneratorThread(FlightManager flightManager,
             SeatManager seatManager,
-            Map<String, Plane> flightPlaneMap,
             ReportCallback callback) {
         this.flightManager = flightManager;
         this.seatManager = seatManager;
-        this.flightPlaneMap = flightPlaneMap;
         this.callback = callback;
         this.isRunning = false;
     }
@@ -85,28 +84,46 @@ public class ReportGeneratorThread extends Thread {
                 Thread.sleep(100);
 
                 String flightNum = flight.getFlightNum();
-                Plane plane = flightPlaneMap.get(flightNum);
+                // Dynamically load plane data from file
+                Plane plane = new Plane(flightNum, "Generic", 180);
+                List<String> lines = util.FileManager.readLines(flightNum + ".txt");
 
-                if (plane != null) {
-                    int total = seatManager.getTotalSeatsCount(plane);
-                    int occupied = seatManager.getReservedSeatsCount(plane);
-                    int available = seatManager.getAvailableSeatsCount(plane);
-                    double occupancyRate = total > 0 ? (occupied * 100.0 / total) : 0.0;
+                if (lines != null) {
+                    for (String line : lines) {
+                        try {
+                            String[] parts = line.split(",");
+                            if (parts.length >= 3) {
+                                String seatNum = parts[0];
+                                SeatClass seatClass = SeatClass.valueOf(parts[1]); // e.g. ECONOMY
+                                boolean occupied = Boolean.parseBoolean(parts[2]);
 
-                    report.append(String.format("%-15s %-20s %-20s %10d %10d %10d %11.2f%%\n",
-                            flightNum,
-                            flight.getDeparturePlace(),
-                            flight.getArrivalPlace(),
-                            total,
-                            occupied,
-                            available,
-                            occupancyRate));
-
-                    totalFlights++;
-                    totalSeats += total;
-                    totalOccupied += occupied;
-                    totalAvailable += available;
+                                Seat seat = new Seat(seatNum, seatClass, 0.0, occupied);
+                                plane.getSeatMap().put(seatNum, seat);
+                            }
+                        } catch (Exception e) {
+                            // Ignore malformed lines
+                        }
+                    }
                 }
+
+                int total = seatManager.getTotalSeatsCount(plane);
+                int occupied = seatManager.getReservedSeatsCount(plane);
+                int available = seatManager.getAvailableSeatsCount(plane);
+                double occupancyRate = total > 0 ? (occupied * 100.0 / total) : 0.0;
+
+                report.append(String.format("%-15s %-20s %-20s %10d %10d %10d %11.2f%%\n",
+                        flightNum,
+                        flight.getDeparturePlace(),
+                        flight.getArrivalPlace(),
+                        total,
+                        occupied,
+                        available,
+                        occupancyRate));
+
+                totalFlights++;
+                totalSeats += total;
+                totalOccupied += occupied;
+                totalAvailable += available;
             }
 
             double overallOccupancyRate = totalSeats > 0 ? (totalOccupied * 100.0 / totalSeats) : 0.0;

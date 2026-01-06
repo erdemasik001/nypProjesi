@@ -12,8 +12,8 @@ import java.time.LocalDate;
 
 public class FlightSearchScreen extends JFrame {
 
-    private JComboBox<String> departureCombo;
-    private JComboBox<String> arrivalCombo;
+    private JTextField departureField;
+    private JTextField arrivalField;
     private JSpinner dateSpinner;
     private JTable flightTable;
     private DefaultTableModel tableModel;
@@ -39,7 +39,6 @@ public class FlightSearchScreen extends JFrame {
         this.reservationManager = new ReservationManager();
         this.flightManager = new service.FlightManager();
         initializeUI();
-        // loadMockFlights(); // REMOVED
     }
 
     private void initializeUI() {
@@ -48,7 +47,6 @@ public class FlightSearchScreen extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // ... (rest of UI setup) ...
         // Main panel - gradient background
         JPanel mainPanel = new JPanel() {
             @Override
@@ -105,10 +103,11 @@ public class FlightSearchScreen extends JFrame {
         panel.add(depLabel);
         panel.add(Box.createVerticalStrut(5));
 
-        departureCombo = new JComboBox<>(cities);
-        departureCombo.setMaximumSize(new Dimension(220, 35));
-        departureCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(departureCombo);
+        departureField = new JTextField();
+        departureField.setMaximumSize(new Dimension(220, 35));
+        departureField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        setupAutoComplete(departureField, cities);
+        panel.add(departureField);
         panel.add(Box.createVerticalStrut(15));
 
         // Arrival city
@@ -119,11 +118,11 @@ public class FlightSearchScreen extends JFrame {
         panel.add(arrLabel);
         panel.add(Box.createVerticalStrut(5));
 
-        arrivalCombo = new JComboBox<>(cities);
-        arrivalCombo.setSelectedIndex(1);
-        arrivalCombo.setMaximumSize(new Dimension(220, 35));
-        arrivalCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(arrivalCombo);
+        arrivalField = new JTextField();
+        arrivalField.setMaximumSize(new Dimension(220, 35));
+        arrivalField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        setupAutoComplete(arrivalField, cities);
+        panel.add(arrivalField);
         panel.add(Box.createVerticalStrut(15));
 
         // Date
@@ -151,6 +150,45 @@ public class FlightSearchScreen extends JFrame {
         panel.add(searchBtn);
 
         return panel;
+    }
+
+    private void setupAutoComplete(final JTextField textField, final String[] items) {
+        final JPopupMenu popup = new JPopupMenu();
+        textField.setLayout(new BorderLayout());
+
+        textField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    String text = textField.getText().toLowerCase();
+                    if (text.isEmpty()) {
+                        popup.setVisible(false);
+                        return;
+                    }
+
+                    popup.removeAll();
+                    boolean found = false;
+                    for (String item : items) {
+                        if (item.toLowerCase().startsWith(text)) {
+                            JMenuItem menuItem = new JMenuItem(item);
+                            menuItem.addActionListener(action -> {
+                                textField.setText(item);
+                                popup.setVisible(false);
+                            });
+                            popup.add(menuItem);
+                            found = true;
+                        }
+                    }
+
+                    if (found) {
+                        popup.show(textField, 0, textField.getHeight());
+                        textField.requestFocus(); // Keep focus on text field
+                    } else {
+                        popup.setVisible(false);
+                    }
+                });
+            }
+        });
     }
 
     private JPanel createResultsPanel() {
@@ -227,10 +265,17 @@ public class FlightSearchScreen extends JFrame {
     }
 
     private void searchFlights() {
-        String departure = (String) departureCombo.getSelectedItem();
-        String arrival = (String) arrivalCombo.getSelectedItem();
+        String departure = departureField.getText().trim();
+        String arrival = arrivalField.getText().trim();
 
-        if (departure.equals(arrival)) {
+        if (departure.isEmpty() || arrival.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Please enter both departure and arrival cities.",
+                    "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (departure.equalsIgnoreCase(arrival)) {
             JOptionPane.showMessageDialog(this,
                     "Departure and arrival cities cannot be the same!",
                     "Warning", JOptionPane.WARNING_MESSAGE);
@@ -267,9 +312,6 @@ public class FlightSearchScreen extends JFrame {
         if (foundCount == 0) {
             JOptionPane.showMessageDialog(this, "No flights found for this route and date.", "Info",
                     JOptionPane.INFORMATION_MESSAGE);
-            // Optionally reload all flights or leave empty? User usually expects filtered
-            // list even if empty.
-            // Leaving it empty is correct for a "search result".
         } else {
             JOptionPane.showMessageDialog(this, foundCount + " flights found.", "Search Result",
                     JOptionPane.INFORMATION_MESSAGE);

@@ -4,7 +4,7 @@ import service.FlightManager;
 import service.SeatManager;
 import service.StaffManager;
 import model.flight.Flight;
-import model.flight.Plane;
+
 import model.staff.Staff;
 
 import javax.swing.*;
@@ -12,8 +12,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import thread.ReportGeneratorThread;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.List;
 
 public class AdminScreen extends JFrame {
@@ -25,13 +24,12 @@ public class AdminScreen extends JFrame {
     private FlightManager flightManager;
     private SeatManager seatManager;
     private StaffManager staffManager;
-    private Map<String, Plane> flightPlaneMap;
 
     public AdminScreen() {
         this.flightManager = new FlightManager();
         this.staffManager = new StaffManager();
         this.seatManager = new SeatManager();
-        this.flightPlaneMap = new HashMap<>(); // Warning: Plane map still manual as planes aren't persisted yet
+
         // initializeMockData(); // REMOVED
         initializeUI();
         refreshFlightTable();
@@ -409,7 +407,6 @@ public class AdminScreen extends JFrame {
         ReportGeneratorThread reportThread = new ReportGeneratorThread(
                 flightManager,
                 seatManager,
-                flightPlaneMap,
                 new ReportGeneratorThread.ReportCallback() {
                     @Override
                     public void onReportStarted() {
