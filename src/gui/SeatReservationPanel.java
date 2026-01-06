@@ -258,7 +258,7 @@ public class SeatReservationPanel extends JFrame {
             for (int j = 0; j < COLS; j++)
                 seatStatus[i][j] = false;
 
-        java.util.List<String> lines = util.FileManager.readLines(flightNo + ".txt");
+        java.util.List<String> lines = util.FileManager.readLines("src/" + flightNo + ".txt");
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 3) {

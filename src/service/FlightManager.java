@@ -8,7 +8,7 @@ public class FlightManager {
 
     private Map<String, Flight> flights;
 
-    private static final String FLIGHTS_FILE = "flights.txt";
+    private static final String FLIGHTS_FILE = "src/flights.txt";
 
     public FlightManager() {
         this.flights = new HashMap<>();
@@ -62,7 +62,7 @@ public class FlightManager {
 
         // Ensure seat files exist for all flights
         for (Flight f : flights.values()) {
-            java.io.File seatFile = new java.io.File(f.getFlightNum() + ".txt");
+            java.io.File seatFile = new java.io.File("src/" + f.getFlightNum() + ".txt");
             if (!seatFile.exists()) {
                 createSeatFile(f.getFlightNum(), f.getDuration());
             }
@@ -272,11 +272,11 @@ public class FlightManager {
             lines.add(seatNum + ",ECONOMY,false");
             seatCounter++;
         }
-        util.FileManager.writeLines(flightNum + ".txt", lines, false);
+        util.FileManager.writeLines("src/" + flightNum + ".txt", lines, false);
     }
 
     public synchronized void updateSeatStatus(String flightNum, String seatNum, boolean occupied) {
-        String filename = flightNum + ".txt";
+        String filename = "src/" + flightNum + ".txt";
         List<String> lines = util.FileManager.readLines(filename);
         List<String> newLines = new ArrayList<>();
         boolean updated = false;

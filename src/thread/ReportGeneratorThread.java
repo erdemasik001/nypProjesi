@@ -86,7 +86,7 @@ public class ReportGeneratorThread extends Thread {
                 String flightNum = flight.getFlightNum();
                 // Dynamically load plane data from file
                 Plane plane = new Plane(flightNum, "Generic", 180);
-                List<String> lines = util.FileManager.readLines(flightNum + ".txt");
+                List<String> lines = util.FileManager.readLines("src/" + flightNum + ".txt");
 
                 if (lines != null) {
                     for (String line : lines) {

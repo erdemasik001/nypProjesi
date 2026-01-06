@@ -5,7 +5,7 @@ import util.FileManager;
 import java.util.*;
 
 public class StaffManager {
-    private static final String STAFF_FILE = "staff.txt";
+    private static final String STAFF_FILE = "src/staff.txt";
     private Map<String, Staff> staffMap;
 
     public StaffManager() {

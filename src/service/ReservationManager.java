@@ -9,7 +9,7 @@ import util.FileManager;
 import java.text.SimpleDateFormat;
 
 public class ReservationManager {
-    private static final String RESERVATIONS_FILE = "reservations.txt";
+    private static final String RESERVATIONS_FILE = "src/reservations.txt";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private Map<String, Reservation> reservations;
