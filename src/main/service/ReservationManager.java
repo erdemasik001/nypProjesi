@@ -9,7 +9,7 @@ import util.FileManager;
 import java.text.SimpleDateFormat;
 
 public class ReservationManager {
-    private static final String RESERVATIONS_FILE = "src/reservations.txt";
+    private static final String RESERVATIONS_FILE = "reservations.txt";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private Map<String, Reservation> reservations;
@@ -211,11 +211,11 @@ public class ReservationManager {
 
             lines.add(sb.toString());
         }
-        FileManager.writeLines(RESERVATIONS_FILE, lines, false);
+        FileManager.writeLines(FileManager.getDataFilePath(RESERVATIONS_FILE), lines, false);
     }
 
     private void loadReservations() {
-        List<String> lines = FileManager.readLines(RESERVATIONS_FILE);
+        List<String> lines = FileManager.readLines(FileManager.getDataFilePath(RESERVATIONS_FILE));
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 12) { // Now expects 12 fields
@@ -253,7 +253,17 @@ public class ReservationManager {
                         price = Double.parseDouble(priceStr);
                     } catch (Exception e) {
                     }
-                    Seat seat = new Seat(seatNum, SeatClass.ECONOMY, price, "Active".equals(status));
+                    model.flight.SeatClass seatClass = model.flight.SeatClass.ECONOMY;
+                    try {
+                        String rowStr = seatNum.substring(0, seatNum.length() - 1);
+                        int row = Integer.parseInt(rowStr);
+                        if (row <= 6) {
+                            seatClass = model.flight.SeatClass.BUSINESS;
+                        }
+                    } catch (Exception e) {
+                        // Keep default ECONOMY if parsing fails
+                    }
+                    Seat seat = new Seat(seatNum, seatClass, price, "Active".equals(status));
 
                     Passenger passenger = new Passenger(passId, passName, passSurname, "Unknown");
 

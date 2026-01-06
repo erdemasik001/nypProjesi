@@ -201,6 +201,16 @@ public class SeatReservationPanel extends JFrame {
                         JOptionPane.ERROR_MESSAGE);
             } else {
                 // Empty - Confirm Reservation
+                if (isBusinessSeat(row)) {
+                    int confirmBusiness = JOptionPane.showConfirmDialog(this,
+                            "Bu koltuk businesstir. Normal fiyatın üzerine fark eklenir.\nDevam etmek istiyor musunuz?",
+                            "Business Seat Confirmation", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (confirmBusiness != JOptionPane.OK_OPTION) {
+                        return;
+                    }
+                }
+
                 int confirm = JOptionPane.showConfirmDialog(this,
                         "Do you want to reserve seat " + btn.getText() + "?",
                         "Confirm Reservation", JOptionPane.YES_NO_OPTION);
@@ -230,7 +240,15 @@ public class SeatReservationPanel extends JFrame {
             // ECONOMY
             // But to be correct we should use what we found in file.
             // We will improve loadRealSeatData to store class info if needed,
-            model.flight.Seat seat = new model.flight.Seat(seatNumFull, model.flight.SeatClass.ECONOMY, 1500.0, false);
+            // Determine class and price
+            model.flight.SeatClass seatClass = isBusinessSeat(row) ? model.flight.SeatClass.BUSINESS
+                    : model.flight.SeatClass.ECONOMY;
+
+            // Calculate price using service
+            service.CalculatePrice priceCalculator = new service.CalculatePrice();
+            double finalPrice = priceCalculator.calculateSeatPrice(flight.getPrice(), seatClass);
+
+            model.flight.Seat seat = new model.flight.Seat(seatNumFull, seatClass, finalPrice, false);
 
             String reservationCode = "RES" + System.currentTimeMillis();
             reservationManager.makeReservation(reservationCode, flight, seat, passenger, new java.util.Date());
@@ -258,7 +276,7 @@ public class SeatReservationPanel extends JFrame {
             for (int j = 0; j < COLS; j++)
                 seatStatus[i][j] = false;
 
-        java.util.List<String> lines = util.FileManager.readLines("src/" + flightNo + ".txt");
+        java.util.List<String> lines = util.FileManager.readLines(util.FileManager.getDataFilePath(flightNo + ".txt"));
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 3) {
@@ -427,6 +445,11 @@ public class SeatReservationPanel extends JFrame {
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private boolean isBusinessSeat(int row) {
+        // Rows 0-5 (1-6 visually) are Business
+        return row < 6;
     }
 
     public static void main(String[] args) {

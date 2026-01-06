@@ -1,5 +1,4 @@
-package service;
-
+import service.SeatManager;
 import model.flight.Plane;
 import model.flight.Seat;
 import model.flight.SeatClass;

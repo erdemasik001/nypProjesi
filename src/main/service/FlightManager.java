@@ -8,7 +8,7 @@ public class FlightManager {
 
     private Map<String, Flight> flights;
 
-    private static final String FLIGHTS_FILE = "src/flights.txt";
+    private static final String FLIGHTS_FILE = "flights.txt";
 
     public FlightManager() {
         this.flights = new HashMap<>();
@@ -28,11 +28,11 @@ public class FlightManager {
                     f.getDate().toString(), f.getHour().toString(), f.getDuration(), f.getPrice());
             lines.add(line);
         }
-        util.FileManager.writeLines(FLIGHTS_FILE, lines, false);
+        util.FileManager.writeLines(util.FileManager.getDataFilePath(FLIGHTS_FILE), lines, false);
     }
 
     private void loadFlights() {
-        List<String> lines = util.FileManager.readLines(FLIGHTS_FILE);
+        List<String> lines = util.FileManager.readLines(util.FileManager.getDataFilePath(FLIGHTS_FILE));
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 7) {
@@ -62,7 +62,7 @@ public class FlightManager {
 
         // Ensure seat files exist for all flights
         for (Flight f : flights.values()) {
-            java.io.File seatFile = new java.io.File("src/" + f.getFlightNum() + ".txt");
+            java.io.File seatFile = new java.io.File(util.FileManager.getDataFilePath(f.getFlightNum() + ".txt"));
             if (!seatFile.exists()) {
                 createSeatFile(f.getFlightNum(), f.getDuration());
             }
@@ -267,16 +267,18 @@ public class FlightManager {
             char letter = (char) ('A' + (seatCounter - 1) % 6);
             String seatNum = row + String.valueOf(letter);
 
+            // First 6 rows are BUSINESS
+            String seatClass = (row <= 6) ? "BUSINESS" : "ECONOMY";
+
             // Format: SeatNumber,Class,OccupancyStatus
-            // Defaulting to ECONOMY and false (empty) for all new flights
-            lines.add(seatNum + ",ECONOMY,false");
+            lines.add(seatNum + "," + seatClass + ",false");
             seatCounter++;
         }
-        util.FileManager.writeLines("src/" + flightNum + ".txt", lines, false);
+        util.FileManager.writeLines(util.FileManager.getDataFilePath(flightNum + ".txt"), lines, false);
     }
 
     public synchronized void updateSeatStatus(String flightNum, String seatNum, boolean occupied) {
-        String filename = "src/" + flightNum + ".txt";
+        String filename = util.FileManager.getDataFilePath(flightNum + ".txt");
         List<String> lines = util.FileManager.readLines(filename);
         List<String> newLines = new ArrayList<>();
         boolean updated = false;

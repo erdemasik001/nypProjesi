@@ -83,6 +83,7 @@ public class ReservationManagementScreen extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         String[] columns = { "Reservation Code", "Flight No", "Passenger Name", "Departure", "Arrival", "Date", "Seat",
+                "Price",
                 "Status" };
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -134,6 +135,10 @@ public class ReservationManagementScreen extends JFrame {
                             ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(r.getDateOfReservation())
                             : "N/A",
                     r.getSeat() != null ? r.getSeat().getSeatNum() : "N/A",
+                    (r.getSeat() != null)
+                            ? (String.format("%.2f TL%s", r.getSeat().getPrice(),
+                                    (r.getSeat().getSeatClass() == model.flight.SeatClass.BUSINESS ? " (B)" : "")))
+                            : "0.00 TL",
                     r.getStatus()
             };
             tableModel.addRow(row);

@@ -5,7 +5,7 @@ import util.FileManager;
 import java.util.*;
 
 public class StaffManager {
-    private static final String STAFF_FILE = "src/staff.txt";
+    private static final String STAFF_FILE = "staff.txt";
     private Map<String, Staff> staffMap;
 
     public StaffManager() {
@@ -61,11 +61,11 @@ public class StaffManager {
                     s.getId(), s.getFirstName(), s.getLastName(), s.getPosition(), s.getStatus());
             lines.add(line);
         }
-        FileManager.writeLines(STAFF_FILE, lines, false);
+        FileManager.writeLines(FileManager.getDataFilePath(STAFF_FILE), lines, false);
     }
 
     private void loadStaff() {
-        List<String> lines = FileManager.readLines(STAFF_FILE);
+        List<String> lines = FileManager.readLines(FileManager.getDataFilePath(STAFF_FILE));
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length >= 5) {

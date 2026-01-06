@@ -1,4 +1,5 @@
-package service;
+
+import service.CalculatePrice;
 
 import model.flight.Seat;
 import model.flight.SeatClass;

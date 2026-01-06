@@ -1,4 +1,5 @@
-package service;
+
+import service.FlightSearchEngine;
 
 import model.flight.Flight;
 import org.junit.jupiter.api.BeforeEach;

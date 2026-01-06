@@ -19,13 +19,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>
-        <testSourceDirectory>test</testSourceDirectory>
+        <sourceDirectory>src/main</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
 
         <plugins>
             <plugin>
@@ -34,6 +33,18 @@
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>Main</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
