@@ -1,16 +1,20 @@
 package gui;
 
+import service.FlightManager;
+import service.SeatManager;
+import service.StaffManager;
+import model.flight.Flight;
+import model.flight.Plane;
+import model.staff.Staff;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import thread.ReportGeneratorThread;
-import service.FlightManager;
-import service.SeatManager;
-import model.flight.Plane;
-import model.flight.Seat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class AdminScreen extends JFrame {
     private JTabbedPane tabbedPane;
@@ -20,57 +24,22 @@ public class AdminScreen extends JFrame {
     private DefaultTableModel staffTableModel;
     private FlightManager flightManager;
     private SeatManager seatManager;
+    private StaffManager staffManager;
     private Map<String, Plane> flightPlaneMap;
 
     public AdminScreen() {
         this.flightManager = new FlightManager();
+        this.staffManager = new StaffManager();
         this.seatManager = new SeatManager();
-        this.flightPlaneMap = new HashMap<>();
-        initializeMockData();
+        this.flightPlaneMap = new HashMap<>(); // Warning: Plane map still manual as planes aren't persisted yet
+        // initializeMockData(); // REMOVED
         initializeUI();
+        refreshFlightTable();
+        refreshStaffTable();
     }
 
-    private void initializeMockData() {
-        try {
-            Plane plane1 = new Plane("P001", "Boeing 737", 180);
-            seatManager.createSeatingArrangement(plane1, 150, 30, 1000.0, 2500.0);
-            flightManager.createFlight("TK101", "Istanbul", "Ankara",
-                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(8, 0), 90);
-            flightPlaneMap.put("TK101", plane1);
-
-            int reservedSeats1 = (int) (Math.random() * 80) + 40;
-            reserveRandomSeats(plane1, reservedSeats1);
-
-            Plane plane2 = new Plane("P002", "Airbus A320", 180);
-            seatManager.createSeatingArrangement(plane2, 150, 30, 950.0, 2300.0);
-            flightManager.createFlight("TK102", "Istanbul", "Ankara",
-                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(12, 30), 90);
-            flightPlaneMap.put("TK102", plane2);
-
-            int reservedSeats2 = (int) (Math.random() * 60) + 30;
-            reserveRandomSeats(plane2, reservedSeats2);
-
-            Plane plane3 = new Plane("P003", "Boeing 737", 150);
-            seatManager.createSeatingArrangement(plane3, 120, 30, 900.0, 2200.0);
-            flightManager.createFlight("TK201", "Ankara", "Izmir",
-                    java.time.LocalDate.of(2026, 1, 6), java.time.LocalTime.of(9, 15), 75);
-            flightPlaneMap.put("TK201", plane3);
-
-            int reservedSeats3 = (int) (Math.random() * 50) + 20;
-            reserveRandomSeats(plane3, reservedSeats3);
-
-        } catch (Exception e) {
-            System.err.println("Error initializing mock data: " + e.getMessage());
-        }
-    }
-
-    private void reserveRandomSeats(Plane plane, int count) {
-        java.util.List<Seat> availableSeats = seatManager.getAvailableSeats(plane);
-        java.util.Collections.shuffle(availableSeats);
-        for (int i = 0; i < Math.min(count, availableSeats.size()); i++) {
-            availableSeats.get(i).setReserved(true);
-        }
-    }
+    // initializeMockData RESERVED for now but unused to avoid complicating map
+    // logic with planes
 
     private void initializeUI() {
         setTitle("Admin/Staff Panel");
@@ -145,7 +114,7 @@ public class AdminScreen extends JFrame {
         flightTableModel = new DefaultTableModel(cols, 0);
         flightTable = new JTable(flightTableModel);
         flightTable.setRowHeight(30);
-        loadMockFlights();
+        // loadMockFlights(); // Handled by refresh
         panel.add(new JScrollPane(flightTable), BorderLayout.CENTER);
         return panel;
     }
@@ -175,33 +144,82 @@ public class AdminScreen extends JFrame {
         staffTableModel = new DefaultTableModel(cols, 0);
         staffTable = new JTable(staffTableModel);
         staffTable.setRowHeight(30);
-        loadMockStaff();
+        // loadMockStaff(); // Handled by refresh
         panel.add(new JScrollPane(staffTable), BorderLayout.CENTER);
         return panel;
     }
 
-    private void loadMockFlights() {
-        flightTableModel.addRow(new Object[] { "TK101", "Istanbul", "Ankara", "06/01/2026", "08:00", 180, "1500 TL" });
-        flightTableModel.addRow(new Object[] { "TK102", "Istanbul", "Ankara", "06/01/2026", "12:30", 180, "1350 TL" });
-        flightTableModel.addRow(new Object[] { "TK201", "Ankara", "Izmir", "06/01/2026", "09:15", 150, "1200 TL" });
+    private void refreshFlightTable() {
+        flightTableModel.setRowCount(0);
+        List<Flight> flights = flightManager.getAllFlights();
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        for (Flight f : flights) {
+            flightTableModel.addRow(new Object[] {
+                    f.getFlightNum(), f.getDeparturePlace(), f.getArrivalPlace(),
+                    f.getDate().format(dtf), f.getHour(), f.getDuration(), String.format("%.2f TL", f.getPrice())
+            });
+        }
     }
 
-    private void loadMockStaff() {
-        staffTableModel.addRow(new Object[] { "STF001", "Ahmet", "Yilmaz", "Manager", "Active" });
-        staffTableModel.addRow(new Object[] { "STF002", "Mehmet", "Demir", "Operations", "Active" });
-        staffTableModel.addRow(new Object[] { "STF003", "Ayse", "Kaya", "Sales", "Active" });
+    private void refreshStaffTable() {
+        staffTableModel.setRowCount(0);
+        List<Staff> staffList = staffManager.getAllStaff();
+        for (Staff s : staffList) {
+            staffTableModel.addRow(new Object[] {
+                    s.getId(), s.getFirstName(), s.getLastName(), s.getPosition(), s.getStatus()
+            });
+        }
     }
+
+    // Replace loadMockFlights and loadMockStaff calls in createPanel methods will
+    // be handled by refresh calls
 
     private void addFlight() {
         JTextField no = new JTextField(), dep = new JTextField(), arr = new JTextField();
         JTextField date = new JTextField(), time = new JTextField(), price = new JTextField();
-        JSpinner cap = new JSpinner(new SpinnerNumberModel(180, 50, 300, 10));
-        Object[] f = { "Flight No:", no, "Departure:", dep, "Arrival:", arr, "Date:", date, "Time:", time, "Capacity:",
-                cap,
+        // Capacity is fixed at 180
+        Object[] f = { "Flight No:", no, "Departure:", dep, "Arrival:", arr, "Date:", date, "Time:", time,
                 "Price:", price };
         if (JOptionPane.showConfirmDialog(this, f, "New Flight", JOptionPane.OK_CANCEL_OPTION) == 0) {
-            flightTableModel.addRow(new Object[] { no.getText(), dep.getText(), arr.getText(), date.getText(),
-                    time.getText(), cap.getValue(), price.getText() + " TL" });
+            try {
+                // Parse date (allow d.M.yyyy or dd.MM.yyyy or yyyy-MM-dd)
+                String dateStr = date.getText().trim();
+                java.time.LocalDate localDate;
+                try {
+                    // Try European format with dots
+                    localDate = java.time.LocalDate.parse(dateStr,
+                            java.time.format.DateTimeFormatter.ofPattern("d.MM.yyyy"));
+                } catch (Exception e1) {
+                    try {
+                        // Try European format with slashes
+                        localDate = java.time.LocalDate.parse(dateStr,
+                                java.time.format.DateTimeFormatter.ofPattern("d/MM/yyyy"));
+                    } catch (Exception e2) {
+                        // Fallback to default ISO
+                        localDate = java.time.LocalDate.parse(dateStr);
+                    }
+                }
+
+                // Parse time (allow HH:mm or HH.mm)
+                String timeStr = time.getText().trim().replace(".", ":");
+                if (timeStr.length() == 4 && timeStr.indexOf(':') == 1) {
+                    timeStr = "0" + timeStr; // Pad 8:00 to 08:00 if needed for standard parsers, though LocalTime.parse
+                                             // is usually smart enough specific patterns might be needed
+                }
+                java.time.LocalTime localTime = java.time.LocalTime.parse(timeStr);
+
+                // Parse price
+                double priceVal = Double.parseDouble(price.getText());
+
+                flightManager.createFlight(no.getText(), dep.getText(), arr.getText(),
+                        localDate, localTime,
+                        180, priceVal);
+                refreshFlightTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Error: " + e.getMessage()
+                                + "\nPlease use format dd.MM.yyyy for date and HH:mm for time. Price must be a number.");
+            }
         }
     }
 
@@ -211,24 +229,55 @@ public class AdminScreen extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select a flight!");
             return;
         }
+        String oldFlightNum = (String) flightTableModel.getValueAt(r, 0);
+
         JTextField no = new JTextField((String) flightTableModel.getValueAt(r, 0));
         JTextField dep = new JTextField((String) flightTableModel.getValueAt(r, 1));
         JTextField arr = new JTextField((String) flightTableModel.getValueAt(r, 2));
-        JTextField date = new JTextField((String) flightTableModel.getValueAt(r, 3));
-        JTextField time = new JTextField((String) flightTableModel.getValueAt(r, 4));
-        JSpinner cap = new JSpinner(new SpinnerNumberModel((int) flightTableModel.getValueAt(r, 5), 50, 300, 10));
-        JTextField price = new JTextField(((String) flightTableModel.getValueAt(r, 6)).replace(" TL", ""));
-        Object[] f = { "Flight No:", no, "Departure:", dep, "Arrival:", arr, "Date:", date, "Time:", time, "Capacity:",
-                cap,
-                "Price:", price };
+        JTextField date = new JTextField(flightTableModel.getValueAt(r, 3).toString());
+        JTextField time = new JTextField(flightTableModel.getValueAt(r, 4).toString());
+        // Capacity fixed at 180, not editable
+
+        // Extract raw price from display string "1500.00 TL" -> "1500.00"
+        String rawPrice = ((String) flightTableModel.getValueAt(r, 6)).replace(" TL", "").replace(",", ".");
+        JTextField price = new JTextField(rawPrice);
+
+        Object[] f = { "Flight No (Cannot Change):", no, "Departure:", dep, "Arrival:", arr, "Date (dd.MM.yyyy):", date,
+                "Time:",
+                time, "Price:", price };
+        no.setEditable(false);
+
         if (JOptionPane.showConfirmDialog(this, f, "Edit Flight", JOptionPane.OK_CANCEL_OPTION) == 0) {
-            flightTableModel.setValueAt(no.getText(), r, 0);
-            flightTableModel.setValueAt(dep.getText(), r, 1);
-            flightTableModel.setValueAt(arr.getText(), r, 2);
-            flightTableModel.setValueAt(date.getText(), r, 3);
-            flightTableModel.setValueAt(time.getText(), r, 4);
-            flightTableModel.setValueAt(cap.getValue(), r, 5);
-            flightTableModel.setValueAt(price.getText() + " TL", r, 6);
+            try {
+                // Parse date (allow d.M.yyyy or dd.MM.yyyy or yyyy-MM-dd)
+                String dateStr = date.getText().trim();
+                java.time.LocalDate localDate;
+                try {
+                    localDate = java.time.LocalDate.parse(dateStr,
+                            java.time.format.DateTimeFormatter.ofPattern("d.MM.yyyy"));
+                } catch (Exception e1) {
+                    try {
+                        localDate = java.time.LocalDate.parse(dateStr,
+                                java.time.format.DateTimeFormatter.ofPattern("d/MM/yyyy"));
+                    } catch (Exception e2) {
+                        localDate = java.time.LocalDate.parse(dateStr);
+                    }
+                }
+
+                // Parse time
+                String timeStr = time.getText().trim().replace(".", ":");
+                java.time.LocalTime localTime = java.time.LocalTime.parse(timeStr);
+
+                // Parse price
+                double priceVal = Double.parseDouble(price.getText());
+
+                flightManager.updateFlight(oldFlightNum, dep.getText(), arr.getText(),
+                        localDate, localTime,
+                        180, priceVal);
+                refreshFlightTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
         }
     }
 
@@ -238,8 +287,15 @@ public class AdminScreen extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select a flight!");
             return;
         }
-        if (JOptionPane.showConfirmDialog(this, "Delete this flight?", "Confirm", JOptionPane.YES_NO_OPTION) == 0)
-            flightTableModel.removeRow(r);
+        String flightNum = (String) flightTableModel.getValueAt(r, 0);
+        if (JOptionPane.showConfirmDialog(this, "Delete this flight?", "Confirm", JOptionPane.YES_NO_OPTION) == 0) {
+            try {
+                flightManager.deleteFlight(flightNum);
+                refreshFlightTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
+        }
     }
 
     private void addStaff() {
@@ -247,8 +303,12 @@ public class AdminScreen extends JFrame {
                 pos = new JTextField();
         Object[] f = { "ID:", id, "First Name:", firstName, "Last Name:", lastName, "Position:", pos };
         if (JOptionPane.showConfirmDialog(this, f, "New Staff", JOptionPane.OK_CANCEL_OPTION) == 0) {
-            staffTableModel.addRow(
-                    new Object[] { id.getText(), firstName.getText(), lastName.getText(), pos.getText(), "Active" });
+            try {
+                staffManager.addStaff(id.getText(), firstName.getText(), lastName.getText(), pos.getText(), "Active");
+                refreshStaffTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
         }
     }
 
@@ -258,20 +318,31 @@ public class AdminScreen extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select a staff member!");
             return;
         }
-        JTextField id = new JTextField((String) staffTableModel.getValueAt(r, 0));
-        JTextField firstName = new JTextField((String) staffTableModel.getValueAt(r, 1));
-        JTextField lastName = new JTextField((String) staffTableModel.getValueAt(r, 2));
-        JTextField pos = new JTextField((String) staffTableModel.getValueAt(r, 3));
-        JComboBox<String> status = new JComboBox<>(new String[] { "Active", "On Leave", "Inactive" });
-        status.setSelectedItem(staffTableModel.getValueAt(r, 4));
-        Object[] f = { "ID:", id, "First Name:", firstName, "Last Name:", lastName, "Position:", pos, "Status:",
-                status };
+        String id = (String) staffTableModel.getValueAt(r, 0);
+        String firstName = (String) staffTableModel.getValueAt(r, 1);
+        String lastName = (String) staffTableModel.getValueAt(r, 2);
+        String pos = (String) staffTableModel.getValueAt(r, 3);
+        String statusVal = (String) staffTableModel.getValueAt(r, 4);
+
+        JTextField idField = new JTextField(id);
+        idField.setEditable(false);
+        JTextField firstNameField = new JTextField(firstName);
+        JTextField lastNameField = new JTextField(lastName);
+        JTextField posField = new JTextField(pos);
+        JComboBox<String> statusBox = new JComboBox<>(new String[] { "Active", "On Leave", "Inactive" });
+        statusBox.setSelectedItem(statusVal);
+
+        Object[] f = { "ID (Cannot Change):", idField, "First Name:", firstNameField, "Last Name:", lastNameField,
+                "Position:", posField, "Status:", statusBox };
+
         if (JOptionPane.showConfirmDialog(this, f, "Edit Staff", JOptionPane.OK_CANCEL_OPTION) == 0) {
-            staffTableModel.setValueAt(id.getText(), r, 0);
-            staffTableModel.setValueAt(firstName.getText(), r, 1);
-            staffTableModel.setValueAt(lastName.getText(), r, 2);
-            staffTableModel.setValueAt(pos.getText(), r, 3);
-            staffTableModel.setValueAt(status.getSelectedItem(), r, 4);
+            try {
+                staffManager.updateStaff(id, firstNameField.getText(), lastNameField.getText(), posField.getText(),
+                        (String) statusBox.getSelectedItem());
+                refreshStaffTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
         }
     }
 
@@ -281,8 +352,16 @@ public class AdminScreen extends JFrame {
             JOptionPane.showMessageDialog(this, "Please select a staff member!");
             return;
         }
-        if (JOptionPane.showConfirmDialog(this, "Delete this staff member?", "Confirm", JOptionPane.YES_NO_OPTION) == 0)
-            staffTableModel.removeRow(r);
+        String id = (String) staffTableModel.getValueAt(r, 0);
+        if (JOptionPane.showConfirmDialog(this, "Delete this staff member?", "Confirm",
+                JOptionPane.YES_NO_OPTION) == 0) {
+            try {
+                staffManager.deleteStaff(id);
+                refreshStaffTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
+        }
     }
 
     private JPanel createReportsPanel() {

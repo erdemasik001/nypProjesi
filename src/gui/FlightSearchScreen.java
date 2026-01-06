@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import service.ReservationManager;
+import model.flight.*;
+import model.reservation.*;
+import java.time.LocalDate;
 
 public class FlightSearchScreen extends JFrame {
 
@@ -18,9 +21,25 @@ public class FlightSearchScreen extends JFrame {
     // City list
     private String[] cities = { "Istanbul", "Ankara", "Izmir", "Antalya", "Trabzon", "Adana", "Bursa", "Konya" };
 
+    private ReservationManager reservationManager;
+    private service.FlightManager flightManager;
+
+    // Buttons
+    private JButton selectSeatBtn;
+    private JButton reserveBtn;
+    private JButton cancelBtn;
+    private JButton backBtn;
+
+    // Temporary Passenger Data
+    private String tempName;
+    private String tempSurname;
+    private Flight tempFlight;
+
     public FlightSearchScreen() {
+        this.reservationManager = new ReservationManager();
+        this.flightManager = new service.FlightManager();
         initializeUI();
-        loadMockFlights();
+        // loadMockFlights(); // REMOVED
     }
 
     private void initializeUI() {
@@ -29,6 +48,7 @@ public class FlightSearchScreen extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // ... (rest of UI setup) ...
         // Main panel - gradient background
         JPanel mainPanel = new JPanel() {
             @Override
@@ -65,6 +85,9 @@ public class FlightSearchScreen extends JFrame {
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
+
+        // Load all flights initially
+        loadAllFlights();
     }
 
     private JPanel createSearchPanel() {
@@ -164,17 +187,24 @@ public class FlightSearchScreen extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setOpaque(false);
 
-        JButton selectSeatBtn = createStyledButton("Select Seat", new Color(52, 152, 219));
+        selectSeatBtn = createStyledButton("Select Seat", new Color(52, 152, 219));
         selectSeatBtn.setPreferredSize(new Dimension(150, 45));
         selectSeatBtn.addActionListener(e -> openSeatSelection());
+        selectSeatBtn.setVisible(false); // Initially hidden
         panel.add(selectSeatBtn);
 
-        JButton reserveBtn = createStyledButton("Make Reservation", new Color(155, 89, 182));
+        reserveBtn = createStyledButton("Make Reservation", new Color(155, 89, 182));
         reserveBtn.setPreferredSize(new Dimension(180, 45));
-        reserveBtn.addActionListener(e -> makeReservation());
+        reserveBtn.addActionListener(e -> initiateReservationProcess());
         panel.add(reserveBtn);
 
-        JButton backBtn = createStyledButton("Go Back", new Color(149, 165, 166));
+        cancelBtn = createStyledButton("Cancel", new Color(231, 76, 60));
+        cancelBtn.setPreferredSize(new Dimension(120, 45));
+        cancelBtn.addActionListener(e -> cancelReservationProcess());
+        cancelBtn.setVisible(false); // Initially hidden
+        panel.add(cancelBtn);
+
+        backBtn = createStyledButton("Go Back", new Color(149, 165, 166));
         backBtn.setPreferredSize(new Dimension(120, 45));
         backBtn.addActionListener(e -> dispose());
         panel.add(backBtn);
@@ -182,19 +212,17 @@ public class FlightSearchScreen extends JFrame {
         return panel;
     }
 
-    private void loadMockFlights() {
-        // Mock flight data
-        Object[][] mockData = {
-                { "TK101", "Istanbul", "Ankara", "06/01/2026", "08:00", "1500 TL", 45 },
-                { "TK102", "Istanbul", "Ankara", "06/01/2026", "12:30", "1350 TL", 23 },
-                { "TK103", "Istanbul", "Ankara", "06/01/2026", "17:00", "1600 TL", 67 },
-                { "TK201", "Ankara", "Izmir", "06/01/2026", "09:15", "1200 TL", 89 },
-                { "TK202", "Izmir", "Antalya", "06/01/2026", "14:45", "950 TL", 112 },
-                { "TK301", "Trabzon", "Istanbul", "07/01/2026", "06:30", "1100 TL", 56 }
-        };
-
-        for (Object[] row : mockData) {
-            tableModel.addRow(row);
+    private void loadAllFlights() {
+        tableModel.setRowCount(0);
+        java.util.List<Flight> allFlights = flightManager.getAllFlights();
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        for (Flight f : allFlights) {
+            int reservedCount = reservationManager.getReservedSeatCountForFlight(f.getFlightNum());
+            int availableSeats = 180 - reservedCount;
+            tableModel.addRow(new Object[] {
+                    f.getFlightNum(), f.getDeparturePlace(), f.getArrivalPlace(),
+                    f.getDate().format(dtf), f.getHour(), String.format("%.2f TL", f.getPrice()), availableSeats
+            });
         }
     }
 
@@ -209,45 +237,46 @@ public class FlightSearchScreen extends JFrame {
             return;
         }
 
-        // Mock search - backend will be called in real implementation
         tableModel.setRowCount(0);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        String dateStr = sdf.format((Date) dateSpinner.getValue());
+        // SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        // Convert Spinner Date to LocalDate
+        Date spinnerDate = (Date) dateSpinner.getValue();
+        LocalDate searchDate = spinnerDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 
-        // Mock result
-        tableModel.addRow(new Object[] { "TK" + (100 + (int) (Math.random() * 900)),
-                departure, arrival, dateStr,
-                String.format("%02d:%02d", 6 + (int) (Math.random() * 14), (int) (Math.random() * 60)),
-                (800 + (int) (Math.random() * 1000)) + " TL",
-                (int) (Math.random() * 150) });
+        java.util.List<Flight> allFlights = flightManager.getAllFlights();
+        int foundCount = 0;
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        tableModel.addRow(new Object[] { "TK" + (100 + (int) (Math.random() * 900)),
-                departure, arrival, dateStr,
-                String.format("%02d:%02d", 6 + (int) (Math.random() * 14), (int) (Math.random() * 60)),
-                (800 + (int) (Math.random() * 1000)) + " TL",
-                (int) (Math.random() * 150) });
+        for (Flight f : allFlights) {
+            boolean routeMatch = f.getDeparturePlace().equalsIgnoreCase(departure) &&
+                    f.getArrivalPlace().equalsIgnoreCase(arrival);
+            boolean dateMatch = f.getDate().equals(searchDate);
 
-        JOptionPane.showMessageDialog(this,
-                departure + " - " + arrival + ": " + tableModel.getRowCount() + " flights found.",
-                "Search Result", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void openSeatSelection() {
-        int selectedRow = flightTable.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Please select a flight!",
-                    "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
+            if (routeMatch && dateMatch) {
+                int reservedCount = reservationManager.getReservedSeatCountForFlight(f.getFlightNum());
+                int availableSeats = 180 - reservedCount;
+                tableModel.addRow(new Object[] {
+                        f.getFlightNum(), f.getDeparturePlace(), f.getArrivalPlace(),
+                        f.getDate().format(dtf), f.getHour(), String.format("%.2f TL", f.getPrice()), availableSeats
+                });
+                foundCount++;
+            }
         }
 
-        String flightNo = (String) tableModel.getValueAt(selectedRow, 0);
-        SeatReservationPanel seatPanel = new SeatReservationPanel(flightNo);
-        seatPanel.setVisible(true);
+        if (foundCount == 0) {
+            JOptionPane.showMessageDialog(this, "No flights found for this route and date.", "Info",
+                    JOptionPane.INFORMATION_MESSAGE);
+            // Optionally reload all flights or leave empty? User usually expects filtered
+            // list even if empty.
+            // Leaving it empty is correct for a "search result".
+        } else {
+            JOptionPane.showMessageDialog(this, foundCount + " flights found.", "Search Result",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
-    private void makeReservation() {
+    private void initiateReservationProcess() {
         int selectedRow = flightTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this,
@@ -279,16 +308,57 @@ public class FlightSearchScreen extends JFrame {
                 return;
             }
 
-            String flightNo = (String) tableModel.getValueAt(selectedRow, 0);
-            String reservationCode = "RES" + System.currentTimeMillis() % 100000;
+            // Store Info Temporarily
+            this.tempName = name;
+            this.tempSurname = surname;
 
-            JOptionPane.showMessageDialog(this,
-                    "Reservation Successful!\n\n" +
-                            "Reservation Code: " + reservationCode + "\n" +
-                            "Flight: " + flightNo + "\n" +
-                            "Passenger: " + name + " " + surname,
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Fetch flight details
+            String flightNo = (String) tableModel.getValueAt(selectedRow, 0);
+            this.tempFlight = flightManager.getFlight(flightNo);
+
+            // Update UI State
+            flightTable.setEnabled(false); // Lock selection
+            reserveBtn.setVisible(false);
+            backBtn.setVisible(false);
+            selectSeatBtn.setVisible(true);
+            cancelBtn.setVisible(true);
         }
+    }
+
+    private void cancelReservationProcess() {
+        // Reset UI State
+        tempName = null;
+        tempSurname = null;
+        tempFlight = null;
+
+        flightTable.setEnabled(true);
+        selectSeatBtn.setVisible(false);
+        cancelBtn.setVisible(false);
+        reserveBtn.setVisible(true);
+        backBtn.setVisible(true);
+    }
+
+    private void openSeatSelection() {
+        if (tempFlight == null || tempName == null) {
+            JOptionPane.showMessageDialog(this, "Process Error. Please restart.", "Error", JOptionPane.ERROR_MESSAGE);
+            cancelReservationProcess();
+            return;
+        }
+
+        String passengerId = "PID" + System.currentTimeMillis() % 10000;
+        Passenger passenger = new Passenger(passengerId, tempName, tempSurname, "Unknown");
+
+        SeatReservationPanel seatPanel = new SeatReservationPanel(
+                tempFlight.getFlightNum(),
+                reservationManager,
+                passenger,
+                () -> {
+                    // On Success Callback
+                    JOptionPane.showMessageDialog(this, "Reservation process completed.");
+                    loadAllFlights(); // Refresh table (seats count)
+                    cancelReservationProcess(); // Reset UI
+                });
+        seatPanel.setVisible(true);
     }
 
     private JButton createStyledButton(String text, Color backgroundColor) {

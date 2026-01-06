@@ -5,15 +5,20 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
+import service.ReservationManager;
+
 public class ReservationManagementScreen extends JFrame {
+
+    private ReservationManager reservationManager;
 
     private JTextField searchField;
     private JTable reservationTable;
     private DefaultTableModel tableModel;
 
     public ReservationManagementScreen() {
+        this.reservationManager = new ReservationManager();
         initializeUI();
-        loadMockReservations();
+        refreshReservations();
     }
 
     private void initializeUI() {
@@ -60,7 +65,7 @@ public class ReservationManagementScreen extends JFrame {
         searchPanel.add(searchBtn);
         JButton showAllBtn = createStyledButton("Show All", new Color(46, 204, 113));
         showAllBtn.setPreferredSize(new Dimension(130, 35));
-        showAllBtn.addActionListener(e -> loadMockReservations());
+        showAllBtn.addActionListener(e -> refreshReservations());
         searchPanel.add(showAllBtn);
         headerPanel.add(searchPanel, BorderLayout.EAST);
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -114,18 +119,25 @@ public class ReservationManagementScreen extends JFrame {
         return panel;
     }
 
-    private void loadMockReservations() {
+    private void refreshReservations() {
         tableModel.setRowCount(0);
-        // Mock reservation data
-        Object[][] mockData = {
-                { "RES12345", "TK101", "John Smith", "Istanbul", "Ankara", "06/01/2026", "15A", "Active" },
-                { "RES12346", "TK102", "Jane Doe", "Istanbul", "Ankara", "06/01/2026", "22B", "Active" },
-                { "RES12347", "TK201", "Bob Johnson", "Ankara", "Izmir", "07/01/2026", "8C", "Active" },
-                { "RES12348", "TK202", "Alice Brown", "Izmir", "Antalya", "07/01/2026", "12D", "Cancelled" },
-                { "RES12349", "TK301", "Charlie Wilson", "Trabzon", "Istanbul", "08/01/2026", "5A", "Active" }
-        };
-        for (Object[] row : mockData)
+        java.util.List<model.reservation.Reservation> reservations = reservationManager.getAllReservations();
+
+        for (model.reservation.Reservation r : reservations) {
+            Object[] row = {
+                    r.getReservationCode(),
+                    r.getFlight() != null ? r.getFlight().getFlightNum() : "N/A",
+                    r.getPassenger() != null ? r.getPassenger().getName() + " " + r.getPassenger().getSurname() : "N/A",
+                    r.getFlight() != null ? r.getFlight().getDeparturePlace() : "N/A",
+                    r.getFlight() != null ? r.getFlight().getArrivalPlace() : "N/A",
+                    r.getDateOfReservation() != null
+                            ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(r.getDateOfReservation())
+                            : "N/A",
+                    r.getSeat() != null ? r.getSeat().getSeatNum() : "N/A",
+                    r.getStatus()
+            };
             tableModel.addRow(row);
+        }
     }
 
     private void searchReservation() {
@@ -183,7 +195,14 @@ public class ReservationManagementScreen extends JFrame {
                 "Cancellation Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.setValueAt("Cancelled", r, 7);
+            String flightNum = (String) tableModel.getValueAt(r, 1);
+            String seatNum = (String) tableModel.getValueAt(r, 6);
+
+            reservationManager.cancelReservation(code);
+            new service.FlightManager().updateSeatStatus(flightNum, seatNum, false);
+
+            refreshReservations();
+
             JOptionPane.showMessageDialog(this,
                     "Reservation cancelled successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);

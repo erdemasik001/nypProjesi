@@ -82,6 +82,9 @@ java -cp out Main
 - ✅ Asenkron rapor oluşturma
 - ✅ Unit Testing (JUnit 5)
 - ✅ Dosya tabanlı veri saklama
+    - `flights.txt`: Uçuş bilgileri (CSV formatı)
+    - `staff.txt`: Personel bilgileri (CSV formatı)
+    - `reservations.txt`: Rezervasyon bilgileri (CSV formatı)
 - ✅ Grafik kullanıcı arayüzü (GUI)
 
 ## 👥 Geliştirici

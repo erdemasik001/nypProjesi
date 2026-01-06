@@ -8,12 +8,69 @@ public class FlightManager {
 
     private Map<String, Flight> flights;
 
+    private static final String FLIGHTS_FILE = "flights.txt";
+
     public FlightManager() {
         this.flights = new HashMap<>();
+        loadFlights();
+    }
+
+    // ... (existing createFlight methods)
+
+    // Add saving to all modification methods:
+
+    private void saveFlights() {
+        List<String> lines = new ArrayList<>();
+        // CSV: flightNum,dep,arr,date,time,duration,price
+        for (Flight f : flights.values()) {
+            String line = String.format(Locale.US, "%s,%s,%s,%s,%s,%d,%.2f",
+                    f.getFlightNum(), f.getDeparturePlace(), f.getArrivalPlace(),
+                    f.getDate().toString(), f.getHour().toString(), f.getDuration(), f.getPrice());
+            lines.add(line);
+        }
+        util.FileManager.writeLines(FLIGHTS_FILE, lines, false);
+    }
+
+    private void loadFlights() {
+        List<String> lines = util.FileManager.readLines(FLIGHTS_FILE);
+        for (String line : lines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 7) {
+                String num = parts[0];
+                String dep = parts[1];
+                String arr = parts[2];
+                LocalDate date = LocalDate.parse(parts[3]);
+                LocalTime time = LocalTime.parse(parts[4]);
+                int duration = Integer.parseInt(parts[5]);
+                double price = Double.parseDouble(parts[6]);
+
+                Flight flight = new Flight(num, dep, arr, date, time, duration, price);
+                flights.put(num, flight);
+            } else if (parts.length == 6) {
+                // Legacy support for files without price
+                String num = parts[0];
+                String dep = parts[1];
+                String arr = parts[2];
+                LocalDate date = LocalDate.parse(parts[3]);
+                LocalTime time = LocalTime.parse(parts[4]);
+                int duration = Integer.parseInt(parts[5]);
+                // Default price if missing
+                Flight flight = new Flight(num, dep, arr, date, time, duration, 1500.0);
+                flights.put(num, flight);
+            }
+        }
+
+        // Ensure seat files exist for all flights
+        for (Flight f : flights.values()) {
+            java.io.File seatFile = new java.io.File(f.getFlightNum() + ".txt");
+            if (!seatFile.exists()) {
+                createSeatFile(f.getFlightNum(), f.getDuration());
+            }
+        }
     }
 
     public void createFlight(String flightNum, String departurePlace, String arrivalPlace,
-            LocalDate date, LocalTime hour, int duration) {
+            LocalDate date, LocalTime hour, int duration, double price) {
         if (flightNum == null || flightNum.trim().isEmpty()) {
             throw new IllegalArgumentException("Flight number cannot be null or empty");
         }
@@ -22,8 +79,11 @@ public class FlightManager {
             throw new IllegalArgumentException("Flight with number " + flightNum + " already exists");
         }
 
-        Flight flight = new Flight(flightNum, departurePlace, arrivalPlace, date, hour, duration);
+        Flight flight = new Flight(flightNum, departurePlace, arrivalPlace, date, hour, duration, price);
         flights.put(flightNum, flight);
+        saveFlights();
+        // duration is used as capacity in this codebase
+        createSeatFile(flightNum, duration);
     }
 
     public void createFlight(Flight flight) {
@@ -40,10 +100,12 @@ public class FlightManager {
         }
 
         flights.put(flight.getFlightNum(), flight);
+        saveFlights();
+        createSeatFile(flight.getFlightNum(), flight.getDuration());
     }
 
     public void updateFlight(String flightNum, String departurePlace, String arrivalPlace,
-            LocalDate date, LocalTime hour, int duration) {
+            LocalDate date, LocalTime hour, int duration, double price) {
         Flight flight = flights.get(flightNum);
 
         if (flight == null) {
@@ -56,9 +118,19 @@ public class FlightManager {
         if (arrivalPlace != null) {
             flight.setArrivalPlace(arrivalPlace);
         }
+        if (date != null) {
+            flight.setDate(date);
+        }
+        if (hour != null) {
+            flight.setHour(hour);
+        }
         if (duration > 0) {
             flight.setDuration(duration);
         }
+        if (price >= 0) {
+            flight.setPrice(price);
+        }
+        saveFlights();
     }
 
     public void updateFlightDeparturePlace(String flightNum, String departurePlace) {
@@ -69,6 +141,7 @@ public class FlightManager {
         }
 
         flight.setDeparturePlace(departurePlace);
+        saveFlights();
     }
 
     public void updateFlightArrivalPlace(String flightNum, String arrivalPlace) {
@@ -79,6 +152,7 @@ public class FlightManager {
         }
 
         flight.setArrivalPlace(arrivalPlace);
+        saveFlights();
     }
 
     public void updateFlightDuration(String flightNum, int duration) {
@@ -93,6 +167,7 @@ public class FlightManager {
         }
 
         flight.setDuration(duration);
+        saveFlights();
     }
 
     public void deleteFlight(String flightNum) {
@@ -105,6 +180,7 @@ public class FlightManager {
         if (removed == null) {
             throw new IllegalArgumentException("Flight with number " + flightNum + " does not exist");
         }
+        saveFlights();
     }
 
     public Flight getFlight(String flightNum) {
@@ -178,5 +254,49 @@ public class FlightManager {
 
     public void clearAllFlights() {
         flights.clear();
+    }
+
+    private void createSeatFile(String flightNum, int capacity) {
+        List<String> lines = new ArrayList<>();
+        int seatCounter = 1;
+        // Generate seats assuming 100% Economy initially as per simple requirement
+        // Requirement: seat number, economy/business, true/false (dolu/boş)
+        while (seatCounter <= capacity) {
+            // Generate row and letter
+            int row = (seatCounter - 1) / 6 + 1;
+            char letter = (char) ('A' + (seatCounter - 1) % 6);
+            String seatNum = row + String.valueOf(letter);
+
+            // Format: SeatNumber,Class,OccupancyStatus
+            // Defaulting to ECONOMY and false (empty) for all new flights
+            lines.add(seatNum + ",ECONOMY,false");
+            seatCounter++;
+        }
+        util.FileManager.writeLines(flightNum + ".txt", lines, false);
+    }
+
+    public synchronized void updateSeatStatus(String flightNum, String seatNum, boolean occupied) {
+        String filename = flightNum + ".txt";
+        List<String> lines = util.FileManager.readLines(filename);
+        List<String> newLines = new ArrayList<>();
+        boolean updated = false;
+
+        for (String line : lines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 3 && parts[0].equals(seatNum)) {
+                // Found the seat, update status
+                // Format: SeatNumber,Class,OccupancyStatus
+                newLines.add(parts[0] + "," + parts[1] + "," + occupied);
+                updated = true;
+            } else {
+                newLines.add(line);
+            }
+        }
+
+        if (updated) {
+            util.FileManager.writeLines(filename, newLines, false);
+        } else {
+            System.err.println("Seat " + seatNum + " not found in file " + filename);
+        }
     }
 }
