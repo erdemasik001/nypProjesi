@@ -14,45 +14,28 @@ public class FileManager {
         }
 
         try {
-
             String jarPath = FileManager.class.getProtectionDomain()
                     .getCodeSource().getLocation().toURI().getPath();
 
             File jarFile = new File(jarPath);
 
             String path = jarFile.getAbsolutePath();
+
             if (path.startsWith("/") && path.length() > 2 && path.charAt(2) == ':') {
                 path = path.substring(1);
             }
             jarFile = new File(path);
 
-            if (jarFile.isFile() && jarFile.getName().endsWith(".jar")) {
+            if (jarFile.isFile()) {
 
                 dataDirectory = jarFile.getParent() + File.separator;
             } else {
 
-                File current = jarFile;
-                while (current != null) {
-                    File srcFolder = new File(current, "src");
-                    if (srcFolder.exists() && srcFolder.isDirectory()) {
-
-                        File testFile = new File(srcFolder, "flights.txt");
-                        if (testFile.exists()) {
-                            dataDirectory = srcFolder.getAbsolutePath() + File.separator;
-                            break;
-                        }
-                    }
-                    current = current.getParentFile();
-                }
-
-                if (dataDirectory == null) {
-                    dataDirectory = "src" + File.separator;
-                }
+                dataDirectory = System.getProperty("user.dir") + File.separator;
             }
         } catch (Exception e) {
             System.err.println("Error determining data directory: " + e.getMessage());
-
-            dataDirectory = "src" + File.separator;
+            dataDirectory = "." + File.separator;
         }
 
         System.out.println("Data directory: " + dataDirectory);
